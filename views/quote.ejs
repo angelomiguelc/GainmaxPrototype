@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f3f7fc">
+  <title>Solar quote | Gainmax</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { color-scheme: light; --ink: #17324f; --muted: #687b94; --line: #dfe8f2; --brand-blue: #174a8b; --brand-orange: #f28c28; --brand-orange-button: #bd5200; --green: var(--brand-blue); --lime: var(--brand-orange); }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; color: var(--ink); font-family: 'DM Sans', sans-serif; background-color: #eef4fa; background-image: radial-gradient(#d7e3f1 0.8px, transparent 0.8px); background-size: 18px 18px; }
+    button, input { font: inherit; }
+    .app-shell { position: relative; min-height: 100dvh; max-width: 440px; margin: 0 auto; overflow: hidden; background: #ffffff; box-shadow: 0 22px 80px #163e6b20; }
+    @media (min-width: 480px) { .app-shell { min-height: min(900px, calc(100dvh - 48px)); margin: 24px auto; border: 1px solid #d6e2f0; border-radius: 28px; } }
+    .font-display { font-family: 'Manrope', sans-serif; }
+    .brand-cta { background-color: var(--brand-orange-button) !important; color: #fff !important; transition: background-color .16s ease, transform .16s ease; }
+    .brand-cta:hover { background-color: #963f00 !important; }
+    .brand-cta:focus-visible { outline: 3px solid #f28c28; outline-offset: 3px; }
+    .brand-cta:disabled { opacity: .72; }
+    .choice { border: 1px solid var(--line); background: #fff; transition: border-color .16s ease, background .16s ease, transform .16s ease; }
+    .choice:active { transform: scale(.985); }
+    .choice.is-selected { border-color: var(--green); background: #edf4fc; box-shadow: inset 0 0 0 1px var(--green); }
+    .step-panel { display: none; animation: enter .24s ease both; }
+    .step-panel.is-active { display: block; }
+    @keyframes enter { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+    .sheet-backdrop { opacity: 0; visibility: hidden; transition: opacity .2s ease, visibility .2s ease; }
+    .sheet-backdrop.is-open { opacity: 1; visibility: visible; }
+    .estimate-sheet { transform: translateY(100%); transition: transform .28s cubic-bezier(.2,.8,.2,1); }
+    .sheet-backdrop.is-open .estimate-sheet { transform: translateY(0); }
+    .estimate-loading { opacity: 0; visibility: hidden; transition: opacity .18s ease, visibility .18s ease; }
+    .estimate-loading.is-visible { opacity: 1; visibility: visible; }
+    .estimate-progress { transform: scaleX(.08); transform-origin: left; animation: estimate-progress 1.05s cubic-bezier(.22,.75,.25,1) forwards; }
+    @keyframes estimate-progress { to { transform: scaleX(1); } }
+    @media (prefers-reduced-motion: reduce) { .estimate-progress { animation-duration: 1ms; } }
+    input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
+  </style>
+</head>
+<body>
+  <main class="app-shell flex flex-col">
+    <header class="sticky top-0 z-20 border-b border-[#e1eaf5] bg-[#ffffff]/95 px-5 pb-3 pt-[max(14px,env(safe-area-inset-top))] backdrop-blur">
+      <div class="flex items-center justify-between">
+        <a href="/" class="flex items-center gap-2.5" aria-label="Gainmax home">
+          <span class="grid h-9 w-9 place-items-center rounded-xl bg-[#174a8b] text-[#f28c28]"><i data-lucide="sun" class="h-5 w-5"></i></span>
+          <span class="font-display text-[17px] font-extrabold tracking-[-.3px]">gainmax<span class="text-[#174a8b]">.</span></span>
+        </a>
+        <a href="/sales-leads" class="rounded-full border border-[#dbe5f1] px-3 py-2 text-xs font-semibold text-[#425975] hover:bg-white">Sales desk <i data-lucide="arrow-up-right" class="ml-1 inline h-3.5 w-3.5"></i></a>
+      </div>
+      <div class="mt-4 flex items-center justify-between">
+        <p class="text-[11px] font-bold uppercase tracking-[1px] text-[#687b94]">Your solar estimate</p>
+        <p class="text-xs font-semibold text-[#687b94]"><span id="stepCount">01</span> <span class="px-1 text-[#b6c6d8]">/</span> <span id="totalSteps">08</span></p>
+      </div>
+      <div class="mt-2 flex gap-1.5" aria-label="Step progress">
+        <% for (let i = 0; i < 8; i++) { %><span class="progress-segment h-1 flex-1 rounded-full bg-[#dbe6f3]" data-progress="<%= i %>"></span><% } %>
+      </div>
+    </header>
+
+    <form id="quoteForm" action="/solar-snapshot" method="POST" class="flex flex-1 flex-col">
+      <input type="hidden" name="country" id="countryValue" value="SG">
+      <input type="hidden" name="property" id="propertyValue">
+      <input type="hidden" name="roof" id="roofValue">
+      <input type="hidden" name="steepness" id="steepnessValue">
+      <input type="hidden" name="storeys" id="storeysValue">
+      <input type="hidden" name="meter" id="meterValue">
+      <input type="hidden" name="panels" id="panelsValue" value="30">
+      <input type="hidden" name="customerName" id="customerNameValue">
+      <input type="hidden" name="customerPhone" id="customerPhoneValue">
+      <input type="hidden" name="customerEmail" id="customerEmailValue">
+      <input type="hidden" name="companyName" id="companyNameValue">
+      <input type="hidden" name="monthlyBill" id="monthlyBillValue">
+      <input type="hidden" name="billUnknown" id="billUnknownValue" value="false">
+      <input type="hidden" name="roofOutline" id="roofOutlineValue" value="[]">
+
+      <div class="flex-1 px-5 pb-28 pt-6">
+        <section class="step-panel is-active" data-step="0">
+          <div class="mb-6">
+            <span class="mb-3 inline-flex items-center gap-1.5 rounded-full bg-[#fff1e4] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[.7px] text-[#a85008]"><i data-lucide="sparkles" class="h-3.5 w-3.5"></i> 2 min estimate</span>
+            <h1 class="font-display text-[29px] font-extrabold leading-[1.12] tracking-[-.7px]">Let’s map your<br>solar potential.</h1>
+            <p class="mt-2 max-w-[290px] text-sm leading-5 text-[#687b94]">First, where is your property located?</p>
+          </div>
+          <div class="rounded-2xl border border-[#dce6f1] bg-white p-1.5">
+            <div class="grid grid-cols-2 gap-1.5">
+              <button type="button" class="choice is-selected flex min-h-[86px] flex-col items-start justify-between rounded-xl p-4 text-left" data-group="country" data-value="SG">
+                <span class="text-xl">🇸🇬</span><span><span class="block font-display text-base font-extrabold">Singapore</span><span class="text-xs text-[#687b94]">Prices in SGD</span></span>
+              </button>
+              <button type="button" class="choice flex min-h-[86px] flex-col items-start justify-between rounded-xl p-4 text-left" data-group="country" data-value="MY">
+                <span class="text-xl">🇲🇾</span><span><span class="block font-display text-base font-extrabold">Malaysia</span><span class="text-xs text-[#687b94]">Prices in RM</span></span>
+              </button>
+            </div>
+          </div>
+          <div class="mt-7 flex items-start gap-3 rounded-xl bg-[#f3f7fc] p-3.5 text-xs leading-[18px] text-[#5e7088]"><i data-lucide="shield-check" class="mt-0.5 h-4 w-4 shrink-0 text-[#174a8b]"></i><p>Your details stay with our solar team. This estimate is a starting point, not a final quotation.</p></div>
+        </section>
+
+        <section class="step-panel" data-step="1">
+          <div class="mb-6"><p class="mb-2 text-xs font-bold uppercase tracking-[1px] text-[#687b94]">Property details</p><h1 class="font-display text-[27px] font-extrabold leading-tight tracking-[-.6px]">What are we powering?</h1><p class="mt-2 text-sm text-[#687b94]">Choose the closest match for this site.</p></div>
+          <div class="space-y-3">
+            <button type="button" class="choice flex min-h-[86px] w-full items-center gap-4 rounded-2xl p-4 text-left" data-group="property" data-value="Landed"><span class="grid h-12 w-12 place-items-center rounded-xl bg-[#eaf2fc] text-[#174a8b]"><i data-lucide="house" class="h-6 w-6"></i></span><span class="flex-1"><span class="block font-display text-base font-extrabold">Landed</span><span class="text-xs text-[#687b94]">Homes with a private roof</span></span></button>
+            <button type="button" class="choice flex min-h-[86px] w-full items-center gap-4 rounded-2xl p-4 text-left" data-group="property" data-value="Condo"><span class="grid h-12 w-12 place-items-center rounded-xl bg-[#eef1fa] text-[#44648b]"><i data-lucide="building-2" class="h-6 w-6"></i></span><span class="flex-1"><span class="block font-display text-base font-extrabold">Condo</span><span class="text-xs text-[#687b94]">Apartment or shared property</span></span></button>
+            <button type="button" class="choice flex min-h-[86px] w-full items-center gap-4 rounded-2xl p-4 text-left" data-group="property" data-value="C&amp;I"><span class="grid h-12 w-12 place-items-center rounded-xl bg-[#fff1e4] text-[#aa5208]"><i data-lucide="factory" class="h-6 w-6"></i></span><span class="flex-1"><span class="block font-display text-base font-extrabold">Commercial &amp; industrial</span><span class="text-xs text-[#687b94]">Business or industrial site</span></span></button>
+          </div>
+        </section>
+
+        <section class="step-panel" data-step="2">
+          <div class="mb-6"><p class="mb-2 text-xs font-bold uppercase tracking-[1px] text-[#687b94]">Roof details</p><h1 class="font-display text-[27px] font-extrabold leading-tight tracking-[-.6px]">What is your roof type?</h1><p class="mt-2 text-sm text-[#687b94]">This helps us plan the right mounting system.</p></div>
+          <div class="grid grid-cols-2 gap-2.5">
+            <% ['Tile Roof', 'RC Roof', 'Mix', "I don't know"].forEach((item, index) => { %>
+              <button type="button" class="choice flex min-h-[76px] flex-col items-start justify-between rounded-xl p-3.5 text-left" data-group="roof" data-value="<%= item %>"><i data-lucide="<%= ['layers-2', 'square', 'blend', 'help-circle'][index] %>" class="h-5 w-5 text-[#174a8b]"></i><span class="text-sm font-bold"><%= item %></span></button>
+            <% }); %>
+          </div>
+        </section>
+
+        <section class="step-panel" data-step="3">
+          <div class="mb-6"><p class="mb-2 text-xs font-bold uppercase tracking-[1px] text-[#687b94]">Roof details</p><h1 class="font-display text-[27px] font-extrabold leading-tight tracking-[-.6px]">How steep is the roof?</h1><p class="mt-2 text-sm text-[#687b94]">Choose steep for a roof pitch of 30° or steeper.</p></div>
+          <div class="space-y-3">
+            <button type="button" class="choice flex min-h-[72px] w-full items-center justify-between rounded-xl px-4 text-left" data-group="steepness" data-value="Standard Roof"><span><span class="block font-bold">Standard roof</span><span class="text-xs text-[#687b94]">Typical pitch, standard install</span></span><i data-lucide="move-right" class="h-5 w-5 text-[#687b94]"></i></button>
+            <button type="button" class="choice flex min-h-[72px] w-full items-center justify-between rounded-xl px-4 text-left" data-group="steepness" data-value="Steep Roof"><span><span class="block font-bold">Steep roof</span><span class="text-xs text-[#687b94]">30° and steeper · +10% installation labor</span></span><span class="rounded-full bg-[#fff0df] px-2.5 py-1 text-xs font-bold text-[#a94e05]">+10%</span></button>
+            <button type="button" class="choice min-h-[56px] w-full rounded-xl px-4 text-left text-sm font-semibold text-[#425975]" data-group="steepness" data-value="I don't know">I’m not sure</button>
+          </div>
+        </section>
+
+        <section class="step-panel" data-step="4">
+          <div class="mb-6"><p class="mb-2 text-xs font-bold uppercase tracking-[1px] text-[#687b94]">Building details</p><h1 class="font-display text-[27px] font-extrabold leading-tight tracking-[-.6px]">How many storeys?</h1><p class="mt-2 text-sm text-[#687b94]">Count the levels in your building.</p></div>
+          <div class="grid grid-cols-2 gap-2.5">
+            <% ['1', '2', '3', 'Other'].forEach((item) => { %><button type="button" class="choice min-h-[88px] rounded-xl p-4 text-left" data-group="storeys" data-value="<%= item %>"><span class="block font-display text-2xl font-extrabold"><%= item === 'Other' ? '···' : item %></span><span class="text-xs font-semibold text-[#687b94]"><%= item === 'Other' ? 'More than 3' : (item === '1' ? 'storey' : 'storeys') %></span></button><% }); %>
+          </div>
+        </section>
+
+        <section class="step-panel" data-step="5">
+          <div class="mb-6"><p class="mb-2 text-xs font-bold uppercase tracking-[1px] text-[#687b94]">Electrical details</p><h1 class="font-display text-[27px] font-extrabold leading-tight tracking-[-.6px]">What’s your meter size?</h1><p class="mt-2 text-sm text-[#687b94]">You can find this on your electricity meter or bill.</p></div>
+          <div class="grid grid-cols-2 gap-2.5">
+            <% ['63A 1-Phase', '63A 3-Phase', '100A 1-Phase', '100A 3-Phase', '200A and above', "I don't know"].forEach((item) => { %><button type="button" class="choice flex min-h-[74px] items-center justify-center rounded-xl p-3 text-center text-sm font-bold" data-group="meter" data-value="<%= item %>"><%= item %></button><% }); %>
+          </div>
+        </section>
+
+        <section class="step-panel" data-step="6">
+          <div class="mb-6"><p class="mb-2 text-xs font-bold uppercase tracking-[1px] text-[#687b94]">Energy usage</p><h1 class="font-display text-[27px] font-extrabold leading-tight tracking-[-.6px]">What’s your monthly bill?</h1><p class="mt-2 text-sm text-[#687b94]">A rough amount is perfect. It helps estimate your savings.</p></div>
+          <label for="monthlyBill" class="mb-2 block text-xs font-bold text-[#506159]">Monthly electricity bill</label>
+          <div class="flex h-[62px] items-center rounded-xl border border-[#dbe5f1] bg-white px-4 focus-within:border-[#174a8b] focus-within:ring-2 focus-within:ring-[#174a8b]/10"><span id="currencyPrefix" class="mr-3 text-lg font-bold text-[#687b94]">$</span><input id="monthlyBill" type="number" min="0" step="1" inputmode="decimal" placeholder="e.g. 350" class="h-full w-full bg-transparent text-lg font-bold outline-none placeholder:font-medium placeholder:text-[#bac4bc]"><span id="currencyCode" class="text-xs font-bold text-[#8b9991]">SGD / month</span></div>
+          <button id="billUnknownButton" type="button" class="choice mt-3 min-h-[48px] rounded-xl px-4 text-sm font-semibold text-[#425975]" aria-pressed="false">I don’t know</button>
+          <div class="mt-6 rounded-xl border border-[#dce6f1] bg-[#f3f7fc] p-4"><p class="text-xs leading-[18px] text-[#5e7088]">No bill handy? No problem. We’ll still size a sample system and show its estimated monthly generation.</p></div>
+        </section>
+
+        <section class="step-panel" data-step="7">
+          <div class="mb-5"><p class="mb-2 text-xs font-bold uppercase tracking-[1px] text-[#687b94]">Optional site detail</p><h1 class="font-display text-[25px] font-extrabold leading-tight tracking-[-.5px]">Trace your roof on the map.</h1><p class="mt-2 text-sm leading-5 text-[#687b94]">Search a postal code, zoom into the property, then tap around the roof edge.</p></div>
+          <label for="postalCode" class="mb-2 block text-xs font-bold text-[#506159]">Property postal code</label>
+          <div class="flex gap-2"><input id="postalCode" name="postalCode" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="20" placeholder="e.g. 018956" class="h-12 min-w-0 flex-1 rounded-xl border border-[#dbe5f1] bg-white px-3.5 text-sm font-semibold outline-none placeholder:font-normal placeholder:text-[#a3afa6] focus:border-[#174a8b] focus:ring-2 focus:ring-[#174a8b]/10"><button id="locateProperty" type="button" class="flex h-12 shrink-0 items-center gap-2 rounded-xl bg-[#174a8b] px-3.5 text-xs font-bold text-white"><i data-lucide="search" class="h-4 w-4"></i> Locate</button></div>
+          <p id="mapMessage" class="mt-2 min-h-4 text-xs leading-4 text-[#687b94]" aria-live="polite"><%= mapsApiKey ? 'Search your postal code to open the satellite map.' : 'Map setup needed: add a Google Maps API key to enable postal search and roof drawing.' %></p>
+          <div class="relative mt-3 overflow-hidden rounded-2xl border border-[#dbe5f1] bg-[#e8eee8]">
+            <div id="roofMap" class="h-[280px] w-full" aria-label="Satellite map for roof outline"></div>
+            <% if (!mapsApiKey) { %><div class="absolute inset-0 grid place-items-center bg-[#eef2ed]/90 p-6 text-center"><div><i data-lucide="map" class="mx-auto h-8 w-8 text-[#687b94]"></i><p class="mt-3 font-display text-sm font-extrabold">Map is not configured</p><p class="mt-1 text-xs leading-5 text-[#687b94]">Set <code class="rounded bg-white px-1 py-0.5">GOOGLE_MAPS_API_KEY</code> and reload to search and draw.</p></div></div><% } %>
+          </div>
+          <div class="mt-2.5 flex items-center justify-between gap-2"><span class="text-xs font-semibold text-[#425975]"><span id="outlinePointCount">0</span> points <span class="text-[#91a097]">· 3 minimum</span></span><div class="flex gap-2"><button id="undoOutline" type="button" class="choice min-h-10 rounded-lg px-3 text-xs font-bold text-[#425975]" disabled>Undo</button><button id="clearOutline" type="button" class="choice min-h-10 rounded-lg px-3 text-xs font-bold text-[#a64d40]" disabled>Clear</button></div></div>
+          <p id="roofSizingEstimate" class="mt-2 text-xs leading-4 text-[#425975]">Default planning estimate: 30 panels. Trace 3 or more points to size from roof area.</p>
+          <button id="drawOutline" type="button" class="choice mt-3 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl text-sm font-bold text-[#174a8b]" disabled><i data-lucide="pentagon" class="h-4 w-4"></i> Start drawing roof</button>
+          <p class="mt-3 text-[11px] leading-4 text-[#75869a]">Outline is approximate and helps our team prepare. It does not replace an on-site roof survey.</p>
+        </section>
+      </div>
+
+      <footer class="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-[440px] border-t border-[#e1eaf5] bg-[#ffffff]/95 px-5 pb-[max(14px,env(safe-area-inset-bottom))] pt-3 backdrop-blur sm:absolute">
+        <div class="flex gap-2.5">
+          <button id="backButton" type="button" class="hidden h-[54px] w-[54px] shrink-0 place-items-center rounded-xl border border-[#dbe5f1] bg-white text-[#425975]" aria-label="Previous step"><i data-lucide="arrow-left" class="h-5 w-5"></i></button>
+          <button id="nextButton" type="button" class="brand-cta flex h-[54px] flex-1 items-center justify-center gap-2 rounded-xl bg-[#174a8b] px-5 font-bold text-white shadow-[0_6px_15px_#174a8b30] hover:bg-[#103b72]">Continue <i data-lucide="arrow-right" class="h-4 w-4"></i></button>
+        </div>
+        <p id="stepError" class="hidden pt-2 text-center text-xs font-semibold text-[#aa493b]" role="alert"></p>
+        <p class="mt-2 text-center text-[10px] text-[#93a098]">No commitment · Estimate in minutes</p>
+      </footer>
+    </form>
+
+    <div id="contactBackdrop" class="sheet-backdrop fixed inset-0 z-40 flex items-end justify-center bg-[#10241e]/50 sm:items-center sm:px-4" aria-hidden="true">
+      <section class="estimate-sheet max-h-[92dvh] w-full max-w-[440px] overflow-y-auto rounded-t-[24px] bg-[#ffffff] px-5 pb-[max(20px,env(safe-area-inset-bottom))] pt-5 sm:rounded-[24px]" role="dialog" aria-modal="true" aria-labelledby="contactTitle">
+        <div class="flex items-start justify-between"><div><span class="inline-flex items-center gap-1.5 rounded-full bg-[#fff1e4] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[.7px] text-[#9d4b08]"><i data-lucide="user-round" class="h-3 w-3"></i> One last step</span><h2 id="contactTitle" class="mt-2 font-display text-[25px] font-extrabold tracking-[-.5px]">Where should we send your estimate?</h2><p class="mt-1 text-sm leading-5 text-[#687b94]">Add your contact details to view your solar snapshot.</p></div><button id="closeContactDetails" type="button" class="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[#dbe6f3] bg-white text-[#627269]" aria-label="Close contact form"><i data-lucide="x" class="h-4 w-4"></i></button></div>
+        <form id="contactDetailsForm" class="mt-5 space-y-3.5">
+          <div><label for="contactName" class="mb-1.5 block text-xs font-bold text-[#506159]">Full name</label><input id="contactName" type="text" autocomplete="name" maxlength="100" required class="h-12 w-full rounded-xl border border-[#dbe5f1] bg-white px-3.5 text-sm font-medium outline-none focus:border-[#174a8b] focus:ring-2 focus:ring-[#174a8b]/10" placeholder="Your name"></div>
+          <div><label for="contactPhone" class="mb-1.5 block text-xs font-bold text-[#506159]">Phone number</label><input id="contactPhone" type="tel" autocomplete="tel" inputmode="tel" minlength="7" maxlength="20" pattern="[0-9+\(\)\s\-]{7,20}" required class="h-12 w-full rounded-xl border border-[#dbe5f1] bg-white px-3.5 text-sm font-medium outline-none focus:border-[#174a8b] focus:ring-2 focus:ring-[#174a8b]/10" placeholder="e.g. +65 9123 4567"></div>
+          <div><label for="contactEmail" class="mb-1.5 block text-xs font-bold text-[#506159]">Email address</label><input id="contactEmail" type="email" autocomplete="email" maxlength="254" pattern="[^\s@]+@[^\s@]+\.[^\s@]+" title="Enter an email with a domain suffix, like name@example.com." required class="h-12 w-full rounded-xl border border-[#dbe5f1] bg-white px-3.5 text-sm font-medium outline-none focus:border-[#174a8b] focus:ring-2 focus:ring-[#174a8b]/10" placeholder="you@example.com"></div>
+          <div><label for="companyName" class="mb-1.5 block text-xs font-bold text-[#506159]">Company or organisation <span class="font-normal text-[#75869a]">(optional)</span></label><input id="companyName" type="text" autocomplete="organization" maxlength="100" class="h-12 w-full rounded-xl border border-[#dbe5f1] bg-white px-3.5 text-sm font-medium outline-none focus:border-[#174a8b] focus:ring-2 focus:ring-[#174a8b]/10" placeholder="Company name"></div>
+          <button type="submit" class="brand-cta mt-2 flex h-[54px] w-full items-center justify-center gap-2 rounded-xl bg-[#174a8b] font-bold text-white shadow-[0_6px_15px_#174a8b30] hover:bg-[#103b72]">Continue to estimate <i data-lucide="arrow-right" class="h-4 w-4"></i></button>
+        </form>
+        <p class="mt-3 text-center text-[10px] leading-4 text-[#93a098]">Your details are shared with the Gainmax team so they can follow up on your enquiry.</p>
+      </section>
+    </div>
+
+    <div id="estimateLoading" class="estimate-loading fixed inset-0 z-50 flex items-center justify-center bg-[#10241e]/55 px-6" aria-hidden="true">
+      <div class="w-full max-w-[320px] rounded-2xl border border-[#dce6f1] bg-[#ffffff] p-6 text-center shadow-2xl" role="status" aria-live="polite">
+        <div class="relative mx-auto grid h-16 w-16 place-items-center rounded-full bg-[#fff1e4] text-[#174a8b]"><span class="absolute inset-0 animate-spin rounded-full border-2 border-transparent border-t-[#174a8b]"></span><i data-lucide="sun" class="h-7 w-7"></i></div>
+        <p class="mt-4 font-display text-lg font-extrabold">Preparing your estimate</p>
+        <p class="mt-1 text-sm text-[#687b94]">Calculating your solar snapshot…</p>
+        <div class="mt-5 h-1.5 overflow-hidden rounded-full bg-[#e2eaf4]"><div class="estimate-progress h-full rounded-full bg-[#174a8b]"></div></div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    lucide.createIcons();
+
+    const form = document.getElementById('quoteForm');
+    const panels = [...document.querySelectorAll('.step-panel')];
+    const nextButton = document.getElementById('nextButton');
+    const backButton = document.getElementById('backButton');
+    const billInput = document.getElementById('monthlyBill');
+    const billUnknownButton = document.getElementById('billUnknownButton');
+    const contactBackdrop = document.getElementById('contactBackdrop');
+    const contactDetailsForm = document.getElementById('contactDetailsForm');
+    const estimateLoading = document.getElementById('estimateLoading');
+    const postalCodeInput = document.getElementById('postalCode');
+    const mapMessage = document.getElementById('mapMessage');
+    const drawOutlineButton = document.getElementById('drawOutline');
+    const undoOutlineButton = document.getElementById('undoOutline');
+    const clearOutlineButton = document.getElementById('clearOutline');
+    const roofSizingEstimate = document.getElementById('roofSizingEstimate');
+    const defaultPanelCount = 30;
+    const panelAreaSquareMeters = 2.6;
+    const usableRoofRatio = 0.75;
+    const maxPanelCount = 10000;
+    let roofMap;
+    let roofGeocoder;
+    let roofPolygon;
+    let roofPointMarkers = [];
+    let roofPoints = [];
+    let mapsReady = false;
+    let isDrawingOutline = false;
+    let currentStep = 0;
+    let billUnknown = false;
+    let isLoadingEstimate = false;
+
+    function updateStep() {
+      panels.forEach((panel, index) => panel.classList.toggle('is-active', index === currentStep));
+      document.getElementById('stepCount').textContent = String(currentStep + 1).padStart(2, '0');
+      document.getElementById('totalSteps').textContent = String(panels.length).padStart(2, '0');
+      document.querySelectorAll('[data-progress]').forEach((segment, index) => {
+        segment.className = `progress-segment h-1 flex-1 rounded-full ${index <= currentStep ? 'bg-[#174a8b]' : 'bg-[#dbe6f3]'}`;
+      });
+      backButton.classList.toggle('hidden', currentStep === 0);
+      backButton.classList.toggle('grid', currentStep > 0);
+      nextButton.innerHTML = currentStep === panels.length - 1
+        ? 'See estimate <i data-lucide="arrow-right" class="h-4 w-4"></i>'
+        : 'Continue <i data-lucide="arrow-right" class="h-4 w-4"></i>';
+      lucide.createIcons();
+      if (currentStep === panels.length - 1 && mapsReady) {
+        initializeRoofMap();
+        requestAnimationFrame(() => google.maps.event.trigger(roofMap, 'resize'));
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function updateOutlineControls() {
+      document.getElementById('outlinePointCount').textContent = roofPoints.length;
+      undoOutlineButton.disabled = roofPoints.length === 0;
+      clearOutlineButton.disabled = roofPoints.length === 0;
+      document.getElementById('roofOutlineValue').value = JSON.stringify(roofPoints);
+      updatePanelEstimate();
+      syncRoofPointMarkers();
+    }
+
+    function calculateRoofArea(points) {
+      const earthRadiusMeters = 6378137;
+      const radiansPerDegree = Math.PI / 180;
+      let areaSum = 0;
+
+      points.forEach((point, index) => {
+        const nextPoint = points[(index + 1) % points.length];
+        const latitude = point.lat * radiansPerDegree;
+        const nextLatitude = nextPoint.lat * radiansPerDegree;
+        let longitudeDelta = (nextPoint.lng - point.lng) * radiansPerDegree;
+
+        if (longitudeDelta > Math.PI) longitudeDelta -= 2 * Math.PI;
+        if (longitudeDelta < -Math.PI) longitudeDelta += 2 * Math.PI;
+
+        areaSum += longitudeDelta * (2 + Math.sin(latitude) + Math.sin(nextLatitude));
+      });
+
+      return Math.abs(areaSum) * earthRadiusMeters ** 2 / 2;
+    }
+
+    function updatePanelEstimate() {
+      let panelCount = defaultPanelCount;
+
+      if (roofPoints.length >= 3) {
+        const roofArea = calculateRoofArea(roofPoints);
+        panelCount = Math.min(maxPanelCount, Math.max(1, Math.floor(roofArea * usableRoofRatio / panelAreaSquareMeters)));
+        roofSizingEstimate.textContent = `Approx. roof area: ${roofArea.toLocaleString(undefined, { maximumFractionDigits: 0 })} m² · ${panelCount} panels (2.6 m² per panel, 75% usable area).`;
+      } else {
+        roofSizingEstimate.textContent = `Default planning estimate: ${defaultPanelCount} panels. Trace 3 or more points to size from roof area.`;
+      }
+
+      document.getElementById('panelsValue').value = String(panelCount);
+    }
+
+    function syncRoofPointMarkers() {
+      if (!roofMap || !window.google?.maps) return;
+      while (roofPointMarkers.length > roofPoints.length) {
+        roofPointMarkers.pop().setMap(null);
+      }
+      roofPoints.forEach((point, index) => {
+        const markerOptions = {
+          position: point,
+          label: { text: String(index + 1), color: '#123a68', fontSize: '10px', fontWeight: '700' },
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 7,
+            fillColor: '#f28c28',
+            fillOpacity: 1,
+            strokeColor: '#ffffff',
+            strokeWeight: 1.5,
+          },
+          title: `Roof point ${index + 1}`,
+          zIndex: google.maps.Marker.MAX_ZINDEX + index,
+        };
+        if (roofPointMarkers[index]) {
+          roofPointMarkers[index].setOptions(markerOptions);
+          roofPointMarkers[index].setMap(roofMap);
+        } else {
+          roofPointMarkers[index] = new google.maps.Marker({ map: roofMap, ...markerOptions });
+        }
+      });
+    }
+
+    function bindOutlineEditing() {
+      if (!roofPolygon) return;
+      const path = roofPolygon.getPath();
+      if (!path || typeof path.addListener !== 'function') return;
+      ['insert_at', 'set_at', 'remove_at'].forEach((eventName) => {
+        path.addListener(eventName, () => {
+          roofPoints = path.getArray().map((point) => ({ lat: point.lat(), lng: point.lng() }));
+          updateOutlineControls();
+        });
+      });
+    }
+
+    function renderRoofOutline() {
+      if (roofPoints.length < 3) {
+        if (roofPolygon) roofPolygon.setMap(null);
+        roofPolygon = null;
+        updateOutlineControls();
+        return;
+      }
+      if (!roofPolygon) {
+        roofPolygon = new google.maps.Polygon({
+          map: roofMap,
+          paths: roofPoints,
+          clickable: false,
+          editable: !isDrawingOutline,
+          fillColor: '#f28c28',
+          fillOpacity: 0.35,
+          strokeColor: '#174a8b',
+          strokeOpacity: 0.95,
+          strokeWeight: 3,
+        });
+      } else {
+        roofPolygon.setMap(roofMap);
+        roofPolygon.setPath(roofPoints);
+        roofPolygon.setOptions({ editable: !isDrawingOutline });
+      }
+      bindOutlineEditing();
+      updateOutlineControls();
+    }
+
+    function initializeRoofMap() {
+      if (roofMap || !window.google?.maps) return;
+      roofGeocoder = new google.maps.Geocoder();
+      roofMap = new google.maps.Map(document.getElementById('roofMap'), {
+        center: document.getElementById('countryValue').value === 'SG'
+          ? { lat: 1.3521, lng: 103.8198 }
+          : { lat: 3.139, lng: 101.6869 },
+        zoom: 17,
+        mapTypeId: 'hybrid',
+        disableDefaultUI: true,
+        zoomControl: true,
+        gestureHandling: 'greedy',
+        clickableIcons: false,
+      });
+      roofMap.addListener('click', (event) => {
+        if (!isDrawingOutline || !event.latLng) return;
+        roofPoints.push({ lat: event.latLng.lat(), lng: event.latLng.lng() });
+        renderRoofOutline();
+      });
+    }
+
+    window.initRoofMap = () => {
+      mapsReady = true;
+      drawOutlineButton.disabled = false;
+      mapMessage.textContent = 'Search a postal code, then tap Start drawing roof and mark each corner.';
+      if (currentStep === panels.length - 1) initializeRoofMap();
+    };
+
+    window.gm_authFailure = () => {
+      mapsReady = false;
+      isDrawingOutline = false;
+      drawOutlineButton.disabled = true;
+      mapMessage.textContent = 'Google Maps rejected this API key. Check that Maps JavaScript API and Geocoding API are enabled and the browser referrer is allowed.';
+    };
+
+    window.reportRoofMapLoadFailure = () => {
+      drawOutlineButton.disabled = true;
+      mapMessage.textContent = 'Google Maps could not load. Check your connection and Maps API key.';
+    };
+
+    async function locateProperty() {
+      const postalCode = postalCodeInput.value.trim();
+      if (!postalCode) {
+        mapMessage.textContent = 'Enter a postal code to find the property.';
+        postalCodeInput.focus();
+        return;
+      }
+      if (!roofGeocoder) {
+        mapMessage.textContent = 'Google Maps is still loading. Try again in a moment.';
+        return;
+      }
+      mapMessage.textContent = 'Searching for the postal code…';
+      const country = document.getElementById('countryValue').value;
+      try {
+        const response = await roofGeocoder.geocode({
+          address: `${postalCode}, ${country === 'SG' ? 'Singapore' : 'Malaysia'}`,
+          componentRestrictions: { country: country.toLowerCase() },
+        });
+        if (!response.results.length) throw new Error('No property found for that postal code.');
+        const result = response.results[0];
+        roofMap.setCenter(result.geometry.location);
+        roofMap.setZoom(20);
+        mapMessage.textContent = `Map centered near ${result.formatted_address}. Zoom in and trace the roof.`;
+      } catch (error) {
+        mapMessage.textContent = error.message || 'Could not find that postal code. Check it and try again.';
+      }
+    }
+
+    function selected(group) {
+      return document.querySelector(`[data-group="${group}"].is-selected`)?.dataset.value;
+    }
+
+    document.querySelectorAll('[data-group]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const { group, value } = button.dataset;
+        document.querySelectorAll(`[data-group="${group}"]`).forEach((option) => option.classList.remove('is-selected'));
+        button.classList.add('is-selected');
+        document.getElementById('stepError').classList.add('hidden');
+        const targetId = { country: 'countryValue', property: 'propertyValue', roof: 'roofValue', steepness: 'steepnessValue', storeys: 'storeysValue', meter: 'meterValue' }[group];
+        document.getElementById(targetId).value = value;
+        if (group === 'country') {
+          const isMalaysia = value === 'MY';
+          document.getElementById('currencyPrefix').textContent = isMalaysia ? 'RM' : '$';
+          document.getElementById('currencyCode').textContent = `${isMalaysia ? 'MYR' : 'SGD'} / month`;
+        }
+      });
+    });
+
+    billUnknownButton.addEventListener('click', () => {
+      billUnknown = !billUnknown;
+      billUnknownButton.classList.toggle('is-selected', billUnknown);
+      billUnknownButton.setAttribute('aria-pressed', String(billUnknown));
+      billInput.disabled = billUnknown;
+      billInput.value = billUnknown ? '' : billInput.value;
+      billInput.placeholder = billUnknown ? 'Skipped' : 'e.g. 350';
+    });
+
+    document.getElementById('locateProperty').addEventListener('click', locateProperty);
+    postalCodeInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        locateProperty();
+      }
+    });
+    drawOutlineButton.addEventListener('click', () => {
+      isDrawingOutline = !isDrawingOutline;
+      if (roofPolygon) roofPolygon.setOptions({ editable: !isDrawingOutline });
+      drawOutlineButton.innerHTML = isDrawingOutline
+        ? '<i data-lucide="check" class="h-4 w-4"></i> Finish outline'
+        : '<i data-lucide="pentagon" class="h-4 w-4"></i> Continue drawing';
+      mapMessage.textContent = isDrawingOutline
+        ? 'Tap each roof corner on the map. Finish after at least 3 points.'
+        : (roofPoints.length < 3 ? 'Add at least 3 points for a roof outline, or continue without one.' : 'Outline saved. Drag its points to adjust the shape.');
+      lucide.createIcons();
+    });
+    undoOutlineButton.addEventListener('click', () => {
+      roofPoints.pop();
+      renderRoofOutline();
+    });
+    clearOutlineButton.addEventListener('click', () => {
+      roofPoints = [];
+      isDrawingOutline = false;
+      drawOutlineButton.innerHTML = '<i data-lucide="pentagon" class="h-4 w-4"></i> Start drawing roof';
+      mapMessage.textContent = 'Outline cleared. Search or draw a new roof outline.';
+      renderRoofOutline();
+      lucide.createIcons();
+    });
+
+    function validCurrentStep() {
+      const requiredGroup = { 1: 'property', 2: 'roof', 3: 'steepness', 4: 'storeys', 5: 'meter' }[currentStep];
+      if (requiredGroup && !selected(requiredGroup)) {
+        document.getElementById('stepError').textContent = 'Select one option to continue.';
+        document.getElementById('stepError').classList.remove('hidden');
+        const active = document.querySelector('.step-panel.is-active');
+        active.animate([{ transform: 'translateX(-4px)' }, { transform: 'translateX(4px)' }, { transform: 'translateX(0)' }], { duration: 180 });
+        return false;
+      }
+      if (currentStep === 6 && !billUnknown && billInput.value && Number(billInput.value) < 0) {
+        document.getElementById('stepError').textContent = 'Enter a valid bill amount or choose “I don’t know”.';
+        document.getElementById('stepError').classList.remove('hidden');
+        billInput.focus();
+        return false;
+      }
+      document.getElementById('stepError').classList.add('hidden');
+      return true;
+    }
+
+    function prepareEstimate() {
+      if (isLoadingEstimate) return;
+      isLoadingEstimate = true;
+      nextButton.disabled = true;
+      estimateLoading.classList.add('is-visible');
+      estimateLoading.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      window.setTimeout(() => {
+        form.action = '/solar-snapshot';
+        form.submit();
+      }, 1050);
+    }
+
+    function requestCustomerDetails() {
+      contactBackdrop.classList.add('is-open');
+      contactBackdrop.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      document.getElementById('contactName').focus();
+    }
+
+    function closeCustomerDetails() {
+      contactBackdrop.classList.remove('is-open');
+      contactBackdrop.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+
+    nextButton.addEventListener('click', () => {
+      if (!validCurrentStep()) return;
+      if (currentStep === panels.length - 1) return requestCustomerDetails();
+      currentStep += 1;
+      updateStep();
+    });
+    backButton.addEventListener('click', () => { currentStep = Math.max(0, currentStep - 1); updateStep(); });
+    document.getElementById('closeContactDetails').addEventListener('click', closeCustomerDetails);
+    contactBackdrop.addEventListener('click', (event) => { if (event.target === contactBackdrop) closeCustomerDetails(); });
+    contactDetailsForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      document.getElementById('customerNameValue').value = document.getElementById('contactName').value.trim();
+      document.getElementById('customerPhoneValue').value = document.getElementById('contactPhone').value.trim();
+      document.getElementById('customerEmailValue').value = document.getElementById('contactEmail').value.trim();
+      document.getElementById('companyNameValue').value = document.getElementById('companyName').value.trim();
+      document.getElementById('monthlyBillValue').value = billUnknown ? '' : billInput.value;
+      document.getElementById('billUnknownValue').value = String(billUnknown || !billInput.value);
+      closeCustomerDetails();
+      prepareEstimate();
+    });
+    document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && contactBackdrop.classList.contains('is-open')) closeCustomerDetails(); });
+  </script>
+  <% if (mapsApiKey) { %><script async defer src="https://maps.googleapis.com/maps/api/js?key=<%= encodeURIComponent(mapsApiKey) %>&callback=initRoofMap&loading=async&v=weekly" onerror="reportRoofMapLoadFailure()"></script><% } %>
+</body>
+</html>
