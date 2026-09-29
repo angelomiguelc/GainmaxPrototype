@@ -25,6 +25,7 @@
     .choice { border: 1px solid var(--line); background: #fff; transition: border-color .16s ease, background .16s ease, transform .16s ease; }
     .choice:active { transform: scale(.985); }
     .choice.is-selected { border-color: var(--green); background: #edf4fc; box-shadow: inset 0 0 0 1px var(--green); }
+    #addressSuggestions [role="option"][aria-selected="true"] { background: #edf4fc; }
     .step-panel { display: none; animation: enter .24s ease both; }
     .step-panel.is-active { display: block; }
     @keyframes enter { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
@@ -147,9 +148,13 @@
 
         <section class="step-panel" data-step="7">
           <div class="mb-5"><p class="mb-2 text-xs font-bold uppercase tracking-[1px] text-[#687b94]">Optional site detail</p><h1 class="font-display text-[25px] font-extrabold leading-tight tracking-[-.5px]">Trace your roof on the map.</h1><p class="mt-2 text-sm leading-5 text-[#687b94]">Search a postal code, zoom into the property, then tap around the roof edge.</p></div>
-          <label for="postalCode" class="mb-2 block text-xs font-bold text-[#506159]">Property postal code</label>
-          <div class="flex gap-2"><input id="postalCode" name="postalCode" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="20" placeholder="e.g. 018956" class="h-12 min-w-0 flex-1 rounded-xl border border-[#dbe5f1] bg-white px-3.5 text-sm font-semibold outline-none placeholder:font-normal placeholder:text-[#a3afa6] focus:border-[#174a8b] focus:ring-2 focus:ring-[#174a8b]/10"><button id="locateProperty" type="button" class="flex h-12 shrink-0 items-center gap-2 rounded-xl bg-[#174a8b] px-3.5 text-xs font-bold text-white"><i data-lucide="search" class="h-4 w-4"></i> Locate</button></div>
-          <p id="mapMessage" class="mt-2 min-h-4 text-xs leading-4 text-[#687b94]" aria-live="polite"><%= mapsApiKey ? 'Search your postal code to open the satellite map.' : 'Map setup needed: add a Google Maps API key to enable postal search and roof drawing.' %></p>
+          <label for="propertyAddress" class="mb-2 block text-xs font-bold text-[#506159]">Property address or postal code</label>
+          <input id="postalCode" name="postalCode" type="hidden">
+          <div class="relative">
+            <div class="flex gap-2"><input id="propertyAddress" type="text" role="combobox" aria-autocomplete="list" aria-controls="addressSuggestions" aria-expanded="false" autocomplete="off" maxlength="200" placeholder="Start typing an address or postal code" class="h-12 min-w-0 flex-1 rounded-xl border border-[#dbe5f1] bg-white px-3.5 text-sm font-semibold outline-none placeholder:font-normal placeholder:text-[#a3afa6] focus:border-[#174a8b] focus:ring-2 focus:ring-[#174a8b]/10"><button id="locateProperty" type="button" class="flex h-12 shrink-0 items-center gap-2 rounded-xl bg-[#174a8b] px-3.5 text-xs font-bold text-white"><i data-lucide="search" class="h-4 w-4"></i> Locate</button></div>
+            <div id="addressSuggestions" role="listbox" aria-label="Address suggestions" class="absolute left-0 right-0 top-full z-30 mt-1 hidden max-h-56 overflow-y-auto rounded-xl border border-[#dbe5f1] bg-white py-1 shadow-lg"></div>
+          </div>
+          <p id="mapMessage" class="mt-2 min-h-4 text-xs leading-4 text-[#687b94]" aria-live="polite"><%= mapsApiKey ? 'Start typing an address or postal code to see suggestions.' : 'Map setup needed: add a Google Maps API key to enable address search and roof drawing.' %></p>
           <div class="relative mt-3 overflow-hidden rounded-2xl border border-[#dbe5f1] bg-[#e8eee8]">
             <div id="roofMap" class="h-[280px] w-full" aria-label="Satellite map for roof outline"></div>
             <% if (!mapsApiKey) { %><div class="absolute inset-0 grid place-items-center bg-[#eef2ed]/90 p-6 text-center"><div><i data-lucide="map" class="mx-auto h-8 w-8 text-[#687b94]"></i><p class="mt-3 font-display text-sm font-extrabold">Map is not configured</p><p class="mt-1 text-xs leading-5 text-[#687b94]">Set <code class="rounded bg-white px-1 py-0.5">GOOGLE_MAPS_API_KEY</code> and reload to search and draw.</p></div></div><% } %>
@@ -209,6 +214,8 @@
     const contactDetailsForm = document.getElementById('contactDetailsForm');
     const estimateLoading = document.getElementById('estimateLoading');
     const postalCodeInput = document.getElementById('postalCode');
+    const propertyAddressInput = document.getElementById('propertyAddress');
+    const addressSuggestions = document.getElementById('addressSuggestions');
     const mapMessage = document.getElementById('mapMessage');
     const drawOutlineButton = document.getElementById('drawOutline');
     const undoOutlineButton = document.getElementById('undoOutline');
@@ -220,6 +227,13 @@
     const maxPanelCount = 10000;
     let roofMap;
     let roofGeocoder;
+    let selectedAddressPlace;
+    let AutocompleteSuggestion;
+    let AutocompleteSessionToken;
+    let autocompleteSessionToken;
+    let addressSearchTimeout;
+    let addressSearchSequence = 0;
+    let activeSuggestionIndex = -1;
     let roofPolygon;
     let roofPointMarkers = [];
     let roofPoints = [];
@@ -380,12 +394,91 @@
         roofPoints.push({ lat: event.latLng.lat(), lng: event.latLng.lng() });
         renderRoofOutline();
       });
+      initializeAddressAutocomplete();
+    }
+
+    async function initializeAddressAutocomplete() {
+      try {
+        const placesLibrary = await google.maps.importLibrary('places');
+        AutocompleteSuggestion = placesLibrary.AutocompleteSuggestion;
+        AutocompleteSessionToken = placesLibrary.AutocompleteSessionToken;
+        autocompleteSessionToken = new AutocompleteSessionToken();
+        if (propertyAddressInput.value.trim()) {
+          fetchAddressSuggestions(propertyAddressInput.value.trim(), ++addressSearchSequence);
+        }
+      } catch (error) {
+        mapMessage.textContent = 'Address suggestions could not load. Check that Places API (New) is enabled for this key.';
+      }
+    }
+
+    function closeAddressSuggestions() {
+      addressSuggestions.replaceChildren();
+      addressSuggestions.classList.add('hidden');
+      propertyAddressInput.setAttribute('aria-expanded', 'false');
+      propertyAddressInput.removeAttribute('aria-activedescendant');
+      activeSuggestionIndex = -1;
+    }
+
+    function renderAddressSuggestions(predictions) {
+      addressSuggestions.replaceChildren();
+      activeSuggestionIndex = -1;
+      predictions.forEach((prediction, index) => {
+        const option = document.createElement('button');
+        option.type = 'button';
+        option.id = `addressSuggestion${index}`;
+        option.setAttribute('role', 'option');
+        option.setAttribute('aria-selected', 'false');
+        option.className = 'block min-h-10 w-full px-3.5 py-2 text-left text-sm text-[#17324f] hover:bg-[#f3f7fc]';
+        option.textContent = prediction.text.text;
+        option.addEventListener('pointerdown', (event) => event.preventDefault());
+        option.addEventListener('click', () => selectAddressSuggestion(prediction));
+        addressSuggestions.append(option);
+      });
+      const hasPredictions = predictions.length > 0;
+      addressSuggestions.classList.toggle('hidden', !hasPredictions);
+      propertyAddressInput.setAttribute('aria-expanded', String(hasPredictions));
+    }
+
+    async function fetchAddressSuggestions(query, sequence) {
+      if (!AutocompleteSuggestion || sequence !== addressSearchSequence) return;
+      try {
+        const { suggestions = [] } = await AutocompleteSuggestion.fetchAutocompleteSuggestions({
+          input: query,
+          includedRegionCodes: [document.getElementById('countryValue').value.toLowerCase()],
+          sessionToken: autocompleteSessionToken,
+        });
+        if (sequence !== addressSearchSequence || propertyAddressInput.value.trim() !== query) return;
+        renderAddressSuggestions(suggestions.map((suggestion) => suggestion.placePrediction).filter(Boolean));
+      } catch (error) {
+        if (sequence !== addressSearchSequence) return;
+        closeAddressSuggestions();
+        mapMessage.textContent = 'Address suggestions failed. Check that Places API (New) is enabled and billing is active.';
+      }
+    }
+
+    async function selectAddressSuggestion(prediction) {
+      const selectionSequence = addressSearchSequence;
+      closeAddressSuggestions();
+      try {
+        const place = prediction.toPlace();
+        await place.fetchFields({ fields: ['addressComponents', 'formattedAddress', 'location'] });
+        if (selectionSequence !== addressSearchSequence || !place.location) return;
+        selectedAddressPlace = place;
+        propertyAddressInput.value = place.formattedAddress || prediction.text.text;
+        postalCodeInput.value = place.addressComponents?.find((component) => component.types.includes('postal_code'))?.longText || '';
+        roofMap.setCenter(place.location);
+        roofMap.setZoom(20);
+        mapMessage.textContent = `Map centered near ${propertyAddressInput.value}. Zoom in and trace the roof.`;
+        autocompleteSessionToken = new AutocompleteSessionToken();
+      } catch (error) {
+        mapMessage.textContent = 'Could not load that address. Try another suggestion or use Locate.';
+      }
     }
 
     window.initRoofMap = () => {
       mapsReady = true;
       drawOutlineButton.disabled = false;
-      mapMessage.textContent = 'Search a postal code, then tap Start drawing roof and mark each corner.';
+      mapMessage.textContent = 'Start typing an address or postal code to see suggestions.';
       if (currentStep === panels.length - 1) initializeRoofMap();
     };
 
@@ -393,7 +486,7 @@
       mapsReady = false;
       isDrawingOutline = false;
       drawOutlineButton.disabled = true;
-      mapMessage.textContent = 'Google Maps rejected this API key. Check that Maps JavaScript API and Geocoding API are enabled and the browser referrer is allowed.';
+      mapMessage.textContent = 'Google Maps rejected this API key. Check that Maps JavaScript API, Geocoding API, and Places API are enabled and the browser referrer is allowed.';
     };
 
     window.reportRoofMapLoadFailure = () => {
@@ -402,30 +495,37 @@
     };
 
     async function locateProperty() {
-      const postalCode = postalCodeInput.value.trim();
-      if (!postalCode) {
-        mapMessage.textContent = 'Enter a postal code to find the property.';
-        postalCodeInput.focus();
+      const address = propertyAddressInput.value.trim();
+      if (!address) {
+        mapMessage.textContent = 'Enter an address or postal code to find the property.';
+        propertyAddressInput.focus();
+        return;
+      }
+      if (selectedAddressPlace?.location) {
+        roofMap.setCenter(selectedAddressPlace.location);
+        roofMap.setZoom(20);
+        mapMessage.textContent = `Map centered near ${selectedAddressPlace.formattedAddress}. Zoom in and trace the roof.`;
         return;
       }
       if (!roofGeocoder) {
         mapMessage.textContent = 'Google Maps is still loading. Try again in a moment.';
         return;
       }
-      mapMessage.textContent = 'Searching for the postal code…';
+      mapMessage.textContent = 'Searching for the address…';
       const country = document.getElementById('countryValue').value;
       try {
         const response = await roofGeocoder.geocode({
-          address: `${postalCode}, ${country === 'SG' ? 'Singapore' : 'Malaysia'}`,
+          address: `${address}, ${country === 'SG' ? 'Singapore' : 'Malaysia'}`,
           componentRestrictions: { country: country.toLowerCase() },
         });
-        if (!response.results.length) throw new Error('No property found for that postal code.');
+        if (!response.results.length) throw new Error('No property found for that address.');
         const result = response.results[0];
+        postalCodeInput.value = result.address_components?.find((component) => component.types.includes('postal_code'))?.long_name || '';
         roofMap.setCenter(result.geometry.location);
         roofMap.setZoom(20);
         mapMessage.textContent = `Map centered near ${result.formatted_address}. Zoom in and trace the roof.`;
       } catch (error) {
-        mapMessage.textContent = error.message || 'Could not find that postal code. Check it and try again.';
+        mapMessage.textContent = error.message || 'Could not find that address. Check it and try again.';
       }
     }
 
@@ -445,6 +545,9 @@
           const isMalaysia = value === 'MY';
           document.getElementById('currencyPrefix').textContent = isMalaysia ? 'RM' : '$';
           document.getElementById('currencyCode').textContent = `${isMalaysia ? 'MYR' : 'SGD'} / month`;
+          selectedAddressPlace = null;
+          postalCodeInput.value = '';
+          closeAddressSuggestions();
         }
       });
     });
@@ -459,12 +562,41 @@
     });
 
     document.getElementById('locateProperty').addEventListener('click', locateProperty);
-    postalCodeInput.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') {
-        event.preventDefault();
-        locateProperty();
+    propertyAddressInput.addEventListener('input', () => {
+      selectedAddressPlace = null;
+      postalCodeInput.value = '';
+      const query = propertyAddressInput.value.trim();
+      const sequence = ++addressSearchSequence;
+      clearTimeout(addressSearchTimeout);
+      if (query.length < 2) {
+        closeAddressSuggestions();
+        return;
       }
+      addressSearchTimeout = setTimeout(() => fetchAddressSuggestions(query, sequence), 250);
     });
+    propertyAddressInput.addEventListener('keydown', (event) => {
+      const options = [...addressSuggestions.querySelectorAll('[role="option"]')];
+      if (event.key === 'ArrowDown' && options.length) {
+        event.preventDefault();
+        activeSuggestionIndex = (activeSuggestionIndex + 1) % options.length;
+      } else if (event.key === 'ArrowUp' && options.length) {
+        event.preventDefault();
+        activeSuggestionIndex = (activeSuggestionIndex - 1 + options.length) % options.length;
+      } else if (event.key === 'Escape') {
+        closeAddressSuggestions();
+        return;
+      } else if (event.key === 'Enter') {
+        event.preventDefault();
+        if (options[activeSuggestionIndex]) options[activeSuggestionIndex].click();
+        else locateProperty();
+        return;
+      } else {
+        return;
+      }
+      options.forEach((option, index) => option.setAttribute('aria-selected', String(index === activeSuggestionIndex)));
+      propertyAddressInput.setAttribute('aria-activedescendant', options[activeSuggestionIndex].id);
+    });
+    propertyAddressInput.addEventListener('blur', () => setTimeout(closeAddressSuggestions, 150));
     drawOutlineButton.addEventListener('click', () => {
       isDrawingOutline = !isDrawingOutline;
       if (roofPolygon) roofPolygon.setOptions({ editable: !isDrawingOutline });
@@ -556,6 +688,6 @@
     });
     document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && contactBackdrop.classList.contains('is-open')) closeCustomerDetails(); });
   </script>
-  <% if (mapsApiKey) { %><script async defer src="https://maps.googleapis.com/maps/api/js?key=<%= encodeURIComponent(mapsApiKey) %>&callback=initRoofMap&loading=async&v=weekly" onerror="reportRoofMapLoadFailure()"></script><% } %>
+  <% if (mapsApiKey) { %><script async defer src="https://maps.googleapis.com/maps/api/js?key=<%= encodeURIComponent(mapsApiKey) %>&callback=initRoofMap&libraries=places&loading=async&v=weekly" onerror="reportRoofMapLoadFailure()"></script><% } %>
 </body>
 </html>
