@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f3f7fc">
-  <title>Sales leads | Gainmax</title>
+  <title>Sales Pipeline | Gainmax</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,95 +13,131 @@
   <style>
     * { box-sizing: border-box; }
     body { margin: 0; min-height: 100vh; color: #17324f; font-family: 'DM Sans', sans-serif; background-color: #eef4fa; background-image: radial-gradient(#d7e3f1 0.8px, transparent 0.8px); background-size: 18px 18px; }
-    .app-shell { min-height: 100dvh; max-width: 760px; margin: 0 auto; background: #ffffff; box-shadow: 0 22px 80px #163e6b20; }
-    @media (min-width: 800px) { .app-shell { min-height: calc(100dvh - 48px); margin: 24px auto; border: 1px solid #d6e2f0; border-radius: 28px; overflow: hidden; } }
     .font-display { font-family: 'Manrope', sans-serif; }
-    .brand-cta { background-color: #bd5200 !important; color: #fff !important; transition: background-color .16s ease, transform .16s ease; }
-    .brand-cta:hover { background-color: #963f00 !important; }
-    .brand-cta:focus-visible { outline: 3px solid #f28c28; outline-offset: 3px; }
-    details[open] .expand-icon { transform: rotate(180deg); }
+    .app-shell { min-height: 100dvh; max-width: 1040px; margin: 0 auto; background: #fff; box-shadow: 0 22px 80px #163e6b20; }
+    @media (min-width: 1080px) { .app-shell { min-height: calc(100dvh - 48px); margin: 24px auto; border: 1px solid #d6e2f0; border-radius: 24px; overflow: hidden; } }
+    dialog { color: #17324f; }
+    dialog::backdrop { background: #10243d88; backdrop-filter: blur(3px); }
   </style>
 </head>
 <body>
-  <% const acceptedCount = leads.filter((lead) => lead.status === 'Accepted').length; %>
   <% const pendingCount = leads.filter((lead) => lead.status === 'Pending').length; %>
+  <% const closedCount = leads.filter((lead) => lead.status === 'Sales Closed').length; %>
+  <% const rejectedCount = leads.filter((lead) => lead.status === 'Rejected').length; %>
   <main class="app-shell">
-    <header class="sticky top-0 z-20 border-b border-[#e1eaf5] bg-[#ffffff]/95 px-5 pb-4 pt-[max(14px,env(safe-area-inset-top))] backdrop-blur sm:px-8">
+    <header class="sticky top-0 z-20 border-b border-[#e1eaf5] bg-white/95 px-4 pb-4 pt-[max(14px,env(safe-area-inset-top))] backdrop-blur sm:px-7">
       <div class="flex items-center justify-between">
-        <a href="/" class="flex items-center gap-2.5" aria-label="Gainmax quotation app"><span class="grid h-9 w-9 place-items-center rounded-xl bg-[#174a8b] text-[#f28c28]"><i data-lucide="sun" class="h-5 w-5"></i></span><span class="font-display text-[17px] font-extrabold">gainmax<span class="text-[#174a8b]">.</span></span></a>
-        <span class="rounded-full bg-[#fff1e4] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[.6px] text-[#a85008]">Sales desk</span>
+        <a href="/" class="flex items-center gap-2.5" aria-label="Gainmax portal switcher"><span class="grid h-9 w-9 place-items-center rounded-xl bg-[#174a8b] text-[#f28c28]"><i data-lucide="sun" class="h-5 w-5"></i></span><span class="font-display text-[17px] font-extrabold">gainmax<span class="text-[#174a8b]">.</span></span></a>
+        <div class="flex items-center gap-2"><a href="/engineer/review" class="hidden min-h-9 items-center gap-1.5 rounded-lg border border-[#dbe5f1] px-3 text-xs font-bold text-[#174a8b] sm:flex"><i data-lucide="workflow" class="h-4 w-4"></i>Engineering queue</a><a href="/logout" class="grid h-9 w-9 place-items-center rounded-lg border border-[#dbe5f1] text-[#536982]" aria-label="Log out"><i data-lucide="log-out" class="h-4 w-4"></i></a></div>
       </div>
-      <div class="mt-5 flex items-end justify-between">
-        <div><p class="text-[11px] font-bold uppercase tracking-[1px] text-[#687b94]">Lead management</p><h1 class="mt-1 font-display text-[26px] font-extrabold tracking-[-.6px]">Solar enquiries</h1></div>
-        <a href="/" class="brand-cta mb-1 inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-[#174a8b] px-3.5 text-xs font-bold text-white"><i data-lucide="plus" class="h-4 w-4"></i> New quote</a>
+      <div class="mt-5 flex flex-wrap items-end justify-between gap-3">
+        <div><p class="text-[10px] font-bold uppercase tracking-[.16em] text-[#687b94]">Sales desk · EPC workflow</p><h1 class="mt-1 font-display text-[23px] font-extrabold leading-tight sm:text-[27px]">Sales Pipeline &amp; Lead Triage</h1></div>
+        <a href="/customer" class="inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-[#174a8b] px-3.5 text-xs font-bold text-white"><i data-lucide="plus" class="h-4 w-4"></i>New quote</a>
       </div>
     </header>
 
-    <section class="px-5 pb-8 pt-5 sm:px-8">
-      <div class="mb-5 grid grid-cols-3 gap-2.5">
-        <div class="rounded-xl border border-[#dce6f1] bg-white p-3.5"><p class="text-[10px] font-bold uppercase tracking-[.6px] text-[#75869a]">All leads</p><p class="mt-1 font-display text-2xl font-extrabold"><%= leads.length %></p></div>
-        <div class="rounded-xl border border-[#dce6f1] bg-white p-3.5"><p class="text-[10px] font-bold uppercase tracking-[.6px] text-[#75869a]">Pending</p><p class="mt-1 font-display text-2xl font-extrabold text-[#a16d28]"><%= pendingCount %></p></div>
-        <div class="rounded-xl border border-[#dce6f1] bg-white p-3.5"><p class="text-[10px] font-bold uppercase tracking-[.6px] text-[#75869a]">Accepted</p><p class="mt-1 font-display text-2xl font-extrabold text-[#174a8b]"><%= acceptedCount %></p></div>
+    <section class="px-4 pb-8 pt-5 sm:px-7 sm:pt-6">
+      <div class="mb-6 grid grid-cols-3 gap-2.5">
+        <div class="rounded-xl border border-[#dce6f1] bg-white p-3.5"><p class="text-[10px] font-bold uppercase tracking-[.07em] text-[#75869a]">Needs triage</p><p class="mt-1 font-display text-2xl font-extrabold text-[#a94d08]"><%= pendingCount %></p></div>
+        <div class="rounded-xl border border-[#dce6f1] bg-white p-3.5"><p class="text-[10px] font-bold uppercase tracking-[.07em] text-[#75869a]">Sales closed</p><p class="mt-1 font-display text-2xl font-extrabold text-[#147467]"><%= closedCount %></p></div>
+        <div class="rounded-xl border border-[#dce6f1] bg-white p-3.5"><p class="text-[10px] font-bold uppercase tracking-[.07em] text-[#75869a]">Declined</p><p class="mt-1 font-display text-2xl font-extrabold text-[#aa493b]"><%= rejectedCount %></p></div>
       </div>
 
       <% if (leads.length === 0) { %>
-        <div class="flex min-h-[300px] flex-col items-center justify-center rounded-2xl border border-dashed border-[#d4e1f0] bg-[#f4f8fd] px-8 text-center">
-          <span class="grid h-14 w-14 place-items-center rounded-2xl bg-white text-[#174a8b] shadow-sm"><i data-lucide="sun-medium" class="h-7 w-7"></i></span>
-          <h2 class="mt-4 font-display text-lg font-extrabold">Your lead list is clear</h2>
-          <p class="mt-1 max-w-[260px] text-sm leading-5 text-[#687b94]">Submitted customer estimates will appear here for your team to review.</p>
-          <a href="/" class="brand-cta mt-5 inline-flex h-11 items-center gap-2 rounded-xl bg-[#174a8b] px-4 text-sm font-bold text-white"><i data-lucide="plus" class="h-4 w-4"></i> Create a test lead</a>
-        </div>
+        <div class="flex min-h-[280px] flex-col items-center justify-center rounded-2xl border border-dashed border-[#d4e1f0] bg-[#f4f8fd] px-6 text-center"><span class="grid h-12 w-12 place-items-center rounded-xl bg-white text-[#174a8b]"><i data-lucide="inbox" class="h-6 w-6"></i></span><h2 class="mt-4 font-display text-lg font-extrabold">No quote requests yet</h2><p class="mt-1 max-w-sm text-sm leading-5 text-[#687b94]">New customer estimates will appear here for triage and proposal handoff.</p><a href="/customer" class="mt-4 inline-flex min-h-10 items-center gap-2 rounded-lg bg-[#174a8b] px-4 text-sm font-bold text-white"><i data-lucide="plus" class="h-4 w-4"></i>Create a test quote</a></div>
       <% } else { %>
-        <div class="mb-3 flex items-center justify-between"><h2 class="font-display text-sm font-extrabold">Latest enquiries</h2><span class="text-xs text-[#75869a]">Newest first</span></div>
+        <div class="mb-3 flex items-end justify-between gap-3"><div><h2 class="font-display text-base font-extrabold">Customer quote requests</h2><p class="mt-1 text-xs text-[#687b94]">Review system fit and commercial terms before project handoff.</p></div><span class="shrink-0 text-[10px] font-semibold text-[#75869a]">Newest first</span></div>
         <div class="space-y-3">
-          <% leads.forEach((lead, index) => { %>
-            <% const formatter = new Intl.NumberFormat(lead.estimate.currency === 'SGD' ? 'en-SG' : 'en-MY', { style: 'currency', currency: lead.estimate.currency, maximumFractionDigits: 0 }); %>
-            <% const statusStyles = { Pending: 'bg-[#fff2dc] text-[#936321]', Accepted: 'bg-[#e4f3e7] text-[#247344]', Rejected: 'bg-[#fae8e5] text-[#aa493b]' }; %>
-            <article class="overflow-hidden rounded-2xl border border-[#dbe6f3] bg-white shadow-[0_3px_12px_#1d3a2b08]">
-              <details>
-                <summary class="list-none cursor-pointer p-4 sm:p-5">
-                  <div class="flex items-start justify-between gap-3">
-                    <div class="min-w-0"><div class="flex flex-wrap items-center gap-2"><span class="font-display text-sm font-extrabold"><%= lead.customerName %></span><span class="text-[10px] font-semibold text-[#75869a]">Enquiry <%= String(leads.length - index).padStart(3, '0') %></span><span class="rounded-full px-2.5 py-1 text-[10px] font-bold <%= statusStyles[lead.status] %>"><%= lead.status %></span></div><p class="mt-1.5 text-xs text-[#687b94]"><%= lead.property %> · <%= lead.country === 'SG' ? 'Singapore' : 'Malaysia' %> · <%= new Date(lead.createdAt).toLocaleString('en-SG', { dateStyle: 'medium', timeStyle: 'short' }) %></p></div>
-                    <i data-lucide="chevron-down" class="expand-icon mt-1 h-4 w-4 shrink-0 text-[#75869a] transition-transform"></i>
-                  </div>
-                  <div class="mt-4 grid grid-cols-2 gap-3 border-t border-[#edf0ed] pt-3.5">
-                    <div><p class="text-[10px] font-bold uppercase tracking-[.6px] text-[#75869a]">System size</p><p class="mt-1 font-display text-lg font-extrabold"><%= lead.estimate.capacityKwp.toFixed(2) %> <span class="text-xs font-semibold text-[#687b94]">kWp</span></p></div>
-                    <div><p class="text-[10px] font-bold uppercase tracking-[.6px] text-[#75869a]">Estimated total</p><p class="mt-1 font-display text-lg font-extrabold"><%= formatter.format(lead.estimate.totalCost) %></p></div>
-                  </div>
-                  <div class="mt-3 flex flex-wrap gap-1.5">
-                    <span class="rounded-md bg-[#f1f6fc] px-2 py-1 text-[10px] font-semibold text-[#536982]"><%= lead.panels %> panels</span>
-                    <span class="rounded-md bg-[#f1f6fc] px-2 py-1 text-[10px] font-semibold text-[#536982]"><%= lead.roof %></span>
-                    <span class="rounded-md bg-[#f1f6fc] px-2 py-1 text-[10px] font-semibold text-[#536982]"><%= lead.meter %></span>
-                    <% if (lead.postalCode) { %><span class="rounded-md bg-[#f1f6fc] px-2 py-1 text-[10px] font-semibold text-[#536982]">Postal code <%= lead.postalCode %></span><% } %>
-                  </div>
-                </summary>
-                <div class="border-t border-[#edf0ed] bg-[#fbfcfa] px-4 pb-4 pt-3 sm:px-5">
-                  <dl class="grid grid-cols-2 gap-x-4 gap-y-3 text-xs">
-                    <div class="col-span-2"><dt class="text-[#75869a]">Customer email</dt><dd class="mt-0.5 break-all font-semibold"><a href="mailto:<%= lead.customerEmail %>" class="text-[#174a8b]"><%= lead.customerEmail %></a></dd></div>
-                    <div><dt class="text-[#75869a]">Phone</dt><dd class="mt-0.5 font-semibold"><a href="tel:<%= encodeURIComponent(lead.customerPhone) %>" class="text-[#174a8b]"><%= lead.customerPhone %></a></dd></div>
-                    <% if (lead.companyName) { %><div><dt class="text-[#75869a]">Company</dt><dd class="mt-0.5 font-semibold"><%= lead.companyName %></dd></div><% } %>
-                    <div><dt class="text-[#75869a]">Roof steepness</dt><dd class="mt-0.5 font-semibold"><%= lead.steepness %></dd></div>
-                    <div><dt class="text-[#75869a]">Building storeys</dt><dd class="mt-0.5 font-semibold"><%= lead.storeys %></dd></div>
-                    <div><dt class="text-[#75869a]">Monthly bill</dt><dd class="mt-0.5 font-semibold"><%= lead.monthlyBill === null ? 'Not provided' : formatter.format(lead.monthlyBill) %></dd></div>
-                    <div><dt class="text-[#75869a]">Monthly generation</dt><dd class="mt-0.5 font-semibold"><%= lead.estimate.monthlyYield.toLocaleString() %> kWh</dd></div>
-                    <div><dt class="text-[#75869a]">Traced roof area</dt><dd class="mt-0.5 font-semibold"><%= Number.isFinite(lead.roofArea) ? `${lead.roofArea.toLocaleString()} m²` : 'Not traced' %></dd></div>
-                    <div><dt class="text-[#75869a]">System price</dt><dd class="mt-0.5 font-semibold"><%= formatter.format(lead.estimate.basePrice) %></dd></div>
-                    <div><dt class="text-[#75869a]">GST</dt><dd class="mt-0.5 font-semibold"><%= formatter.format(lead.estimate.gst) %></dd></div>
-                    <div><dt class="text-[#75869a]">Roof outline</dt><dd class="mt-0.5 font-semibold"><%= lead.roofOutline.length >= 3 ? `${lead.roofOutline.length} map points saved` : 'Not drawn' %></dd></div>
-                  </dl>
-                  <% if (lead.postalCode) { %><a class="mt-4 flex min-h-10 items-center justify-center gap-2 rounded-xl border border-[#dbe5f1] bg-white text-xs font-bold text-[#174a8b]" href="https://www.google.com/maps/search/?api=1&amp;query=<%= encodeURIComponent(`${lead.postalCode}, ${lead.country === 'SG' ? 'Singapore' : 'Malaysia'}`) %>" target="_blank" rel="noreferrer"><i data-lucide="map-pin" class="h-4 w-4"></i> Open property in Google Maps</a><% } %>
-                  <div class="mt-4 grid grid-cols-2 gap-2.5">
-                    <form action="/leads/<%= lead.id %>/status" method="POST"><input type="hidden" name="action" value="approve"><button class="flex h-11 w-full items-center justify-center gap-1.5 rounded-xl bg-[#174a8b] text-xs font-bold text-white hover:bg-[#103b72]" type="submit"><i data-lucide="check" class="h-4 w-4"></i> Approve</button></form>
-                    <form action="/leads/<%= lead.id %>/status" method="POST"><input type="hidden" name="action" value="decline"><button class="flex h-11 w-full items-center justify-center gap-1.5 rounded-xl border border-[#efd9d5] bg-white text-xs font-bold text-[#a64d40] hover:bg-[#fff7f5]" type="submit"><i data-lucide="x" class="h-4 w-4"></i> Decline</button></form>
-                  </div>
+          <% leads.forEach((lead) => { %>
+            <% const money = new Intl.NumberFormat(lead.estimate.currency === 'SGD' ? 'en-SG' : 'en-MY', { style: 'currency', currency: lead.estimate.currency, maximumFractionDigits: 0 }); %>
+            <% const statusClasses = { Pending: 'bg-[#fff1e4] text-[#a94d08]', 'Sales Closed': 'bg-[#eaf5f3] text-[#147467]', Rejected: 'bg-[#fae8e5] text-[#aa493b]' }; %>
+            <article class="overflow-hidden rounded-xl border border-[#dbe5f1] bg-white">
+              <div class="p-4 sm:p-5">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                  <div class="min-w-0"><div class="flex flex-wrap items-center gap-2"><h3 class="font-display text-base font-extrabold"><%= lead.customerName %></h3><span class="rounded-full px-2.5 py-1 text-[10px] font-bold <%= statusClasses[lead.status] || 'bg-slate-100 text-slate-600' %>"><%= lead.status %></span></div><p class="mt-1 text-xs text-[#687b94]"><%= lead.customerEmail %><% if (lead.companyName) { %> · <%= lead.companyName %><% } %></p></div>
+                  <span class="text-[10px] font-semibold text-[#75869a]"><%= new Date(lead.createdAt).toLocaleDateString('en-SG', { dateStyle: 'medium' }) %></span>
                 </div>
-              </details>
+                <div class="mt-4 grid grid-cols-2 gap-3 border-t border-[#edf0ed] pt-3.5 sm:grid-cols-4">
+                  <div><p class="text-[9px] font-bold uppercase tracking-[.07em] text-[#75869a]">Property type</p><p class="mt-1 text-sm font-bold"><%= lead.property %></p></div>
+                  <div><p class="text-[9px] font-bold uppercase tracking-[.07em] text-[#75869a]">System size</p><p class="mt-1 text-sm font-bold"><%= lead.estimate.capacityKwp.toFixed(2) %> kWp</p></div>
+                  <div><p class="text-[9px] font-bold uppercase tracking-[.07em] text-[#75869a]">Quote price</p><p class="mt-1 text-sm font-bold"><%= money.format(lead.estimate.totalCost) %></p></div>
+                  <div><p class="text-[9px] font-bold uppercase tracking-[.07em] text-[#75869a]">Roof details</p><p class="mt-1 text-sm font-bold"><%= lead.roof %> · <%= lead.steepness %></p></div>
+                </div>
+                <div class="mt-3 flex flex-wrap gap-1.5"><span class="rounded-md bg-[#f1f6fc] px-2 py-1 text-[10px] font-semibold text-[#536982]"><%= lead.panels %> panels</span><span class="rounded-md bg-[#f1f6fc] px-2 py-1 text-[10px] font-semibold text-[#536982]"><%= lead.storeys %> storeys</span><span class="rounded-md bg-[#f1f6fc] px-2 py-1 text-[10px] font-semibold text-[#536982]"><%= lead.country === 'SG' ? 'Singapore' : 'Malaysia' %></span><% if (lead.postalCode) { %><span class="rounded-md bg-[#f1f6fc] px-2 py-1 text-[10px] font-semibold text-[#536982]">Postal code <%= lead.postalCode %></span><% } %></div>
+                <% if (lead.status === 'Pending') { %>
+                  <div class="mt-4 grid grid-cols-1 gap-2 border-t border-[#edf0ed] pt-3.5 sm:grid-cols-[1fr_auto]">
+                    <button type="button" class="handoff-button inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#174a8b] px-3.5 text-xs font-bold text-white" data-lead-id="<%= lead.id %>" data-currency="<%= lead.estimate.currency %>" data-total="<%= lead.estimate.totalCost %>"><i data-lucide="file-check-2" class="h-4 w-4"></i>Approve &amp; Hand Over to Project</button>
+                    <form action="/sales/leads/<%= lead.id %>/decline" method="POST"><button type="submit" class="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-[#efd9d5] px-4 text-xs font-bold text-[#a64d40] hover:bg-[#fff7f5]"><i data-lucide="x" class="h-4 w-4"></i>Decline</button></form>
+                  </div>
+                <% } else if (lead.status === 'Sales Closed') { %>
+                  <div class="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-[#edf0ed] pt-3.5"><p class="text-xs text-[#147467]">Transferred to Engineering<% if (lead.engineering?.assignedEngineer) { %> · <%= lead.engineering.assignedEngineer %><% } %></p><a href="/engineer/review#project-<%= lead.id %>" class="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-[#dbe5f1] px-3 text-xs font-bold text-[#174a8b]">View project<i data-lucide="arrow-up-right" class="h-3.5 w-3.5"></i></a></div>
+                <% } else { %>
+                  <p class="mt-4 border-t border-[#edf0ed] pt-3.5 text-xs text-[#aa493b]">This quote request was declined.</p>
+                <% } %>
+              </div>
             </article>
           <% }); %>
         </div>
       <% } %>
     </section>
   </main>
-  <script>lucide.createIcons();</script>
+
+  <dialog id="handoffDialog" class="m-auto max-h-[92dvh] w-[calc(100%-24px)] max-w-[560px] overflow-y-auto rounded-2xl border border-[#dbe5f1] bg-white p-0 shadow-2xl">
+    <form id="handoffForm" method="POST" enctype="multipart/form-data" class="p-5 sm:p-6">
+      <div class="flex items-start justify-between gap-3"><div><p class="text-[10px] font-bold uppercase tracking-[.14em] text-[#687b94]">Sales closed · EPC handoff</p><h2 class="mt-1 font-display text-xl font-extrabold">Prepare project handoff</h2><p class="mt-1 text-sm leading-5 text-[#687b94]">Attach the approved proposal, capture customer requests, and confirm payment milestones.</p></div><button id="closeHandoff" type="button" class="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-[#dbe5f1] text-[#536982]" aria-label="Close handoff"><i data-lucide="x" class="h-4 w-4"></i></button></div>
+      <div class="mt-5 space-y-4">
+        <div><label for="proposal" class="mb-1.5 block text-xs font-bold text-[#425975]">Customer proposal <span class="text-[#aa493b]">Required</span></label><label for="proposal" class="flex min-h-12 cursor-pointer items-center gap-2 rounded-lg border border-dashed border-[#b8c9dc] bg-[#f7fafc] px-3 text-sm font-semibold text-[#174a8b]"><i data-lucide="upload" class="h-4 w-4"></i><span id="proposalName">Choose proposal file (PDF, DOCX, or drawing)</span><input id="proposal" name="proposal" type="file" accept=".pdf,.doc,.docx,.dwg,.dxf,.png,.jpg,.jpeg" required class="sr-only"></label><p class="mt-1 text-[10px] text-[#8796a9]">Maximum 10 MB. Kept in memory for this demo session.</p></div>
+        <div><label for="specialCustomerRequests" class="mb-1.5 block text-xs font-bold text-[#425975]">Special customer requests</label><textarea id="specialCustomerRequests" name="specialCustomerRequests" rows="3" maxlength="4000" class="w-full resize-y rounded-lg border border-[#dbe5f1] px-3 py-2.5 text-sm outline-none focus:border-[#174a8b]" placeholder="Roof access notes, scheduling constraints, or other requirements"></textarea></div>
+        <fieldset><legend class="mb-2 text-xs font-bold text-[#425975]">Payment milestone setup <span class="font-normal text-[#687b94]">(must total 100%)</span></legend><div class="space-y-2 rounded-lg border border-[#dbe5f1] p-3">
+          <label class="grid grid-cols-[minmax(0,1fr)_72px_100px] items-center gap-2 text-xs"><span class="font-semibold">Project confirmation</span><span class="relative"><input class="milestone-percent h-9 w-full rounded-md border border-[#dbe5f1] px-2 pr-6 text-right text-sm font-bold" type="number" name="confirmationPercent" min="1" max="100" step="1" value="20" required><span class="pointer-events-none absolute right-2 top-2.5 text-[#687b94]">%</span></span><output id="confirmationAmount" class="text-right font-bold"></output></label>
+          <label class="grid grid-cols-[minmax(0,1fr)_72px_100px] items-center gap-2 text-xs"><span class="font-semibold">Before installation</span><span class="relative"><input class="milestone-percent h-9 w-full rounded-md border border-[#dbe5f1] px-2 pr-6 text-right text-sm font-bold" type="number" name="installationPercent" min="1" max="100" step="1" value="30" required><span class="pointer-events-none absolute right-2 top-2.5 text-[#687b94]">%</span></span><output id="installationAmount" class="text-right font-bold"></output></label>
+          <label class="grid grid-cols-[minmax(0,1fr)_72px_100px] items-center gap-2 text-xs"><span class="font-semibold">Project handover</span><span class="relative"><input class="milestone-percent h-9 w-full rounded-md border border-[#dbe5f1] px-2 pr-6 text-right text-sm font-bold" type="number" name="handoverPercent" min="1" max="100" step="1" value="50" required><span class="pointer-events-none absolute right-2 top-2.5 text-[#687b94]">%</span></span><output id="handoverAmount" class="text-right font-bold"></output></label>
+        </div><p id="milestoneValidation" class="mt-1.5 min-h-4 text-xs text-[#aa493b]" aria-live="polite"></p></fieldset>
+      </div>
+      <div class="mt-5 grid grid-cols-2 gap-2"><button id="cancelHandoff" type="button" class="min-h-11 rounded-lg border border-[#dbe5f1] text-sm font-bold text-[#536982]">Cancel</button><button id="submitHandoff" type="submit" class="min-h-11 rounded-lg bg-[#174a8b] px-3 text-sm font-bold text-white disabled:opacity-50">Confirm &amp; transfer</button></div>
+    </form>
+  </dialog>
+
+  <script>
+    lucide.createIcons();
+    const handoffDialog = document.getElementById('handoffDialog');
+    const handoffForm = document.getElementById('handoffForm');
+    const milestoneInputs = [...document.querySelectorAll('.milestone-percent')];
+    let handoffTotal = 0;
+    let handoffCurrency = 'SGD';
+    const currencyFormat = (amount) => new Intl.NumberFormat(handoffCurrency === 'SGD' ? 'en-SG' : 'en-MY', { style: 'currency', currency: handoffCurrency, maximumFractionDigits: 2 }).format(amount);
+
+    function updateMilestones() {
+      const values = milestoneInputs.map((input) => Number(input.value));
+      ['confirmationAmount', 'installationAmount', 'handoverAmount'].forEach((id, index) => {
+        document.getElementById(id).textContent = Number.isFinite(values[index]) ? currencyFormat(handoffTotal * values[index] / 100) : '';
+      });
+      const total = values.reduce((sum, value) => sum + (Number.isFinite(value) ? value : 0), 0);
+      const valid = values.every((value) => value > 0 && value <= 100) && Math.abs(total - 100) < 0.01;
+      document.getElementById('milestoneValidation').textContent = valid ? '' : `Current total: ${total}%. Adjust the percentages to equal 100%.`;
+      document.getElementById('submitHandoff').disabled = !valid;
+      return valid;
+    }
+
+    document.querySelectorAll('.handoff-button').forEach((button) => {
+      button.addEventListener('click', () => {
+        handoffForm.action = `/sales/leads/${button.dataset.leadId}/handoff`;
+        handoffTotal = Number(button.dataset.total);
+        handoffCurrency = button.dataset.currency;
+        handoffForm.reset();
+        document.getElementById('proposalName').textContent = 'Choose proposal file (PDF, DOCX, or drawing)';
+        updateMilestones();
+        handoffDialog.showModal();
+      });
+    });
+    milestoneInputs.forEach((input) => input.addEventListener('input', updateMilestones));
+    document.getElementById('proposal').addEventListener('change', (event) => {
+      document.getElementById('proposalName').textContent = event.target.files[0]?.name || 'Choose proposal file (PDF, DOCX, or drawing)';
+    });
+    document.getElementById('closeHandoff').addEventListener('click', () => handoffDialog.close());
+    document.getElementById('cancelHandoff').addEventListener('click', () => handoffDialog.close());
+    handoffDialog.addEventListener('click', (event) => { if (event.target === handoffDialog) handoffDialog.close(); });
+    handoffForm.addEventListener('submit', (event) => { if (!updateMilestones()) event.preventDefault(); });
+  </script>
 </body>
 </html>
