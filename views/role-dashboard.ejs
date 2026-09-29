@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= role %> Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #17324f;
+        --muted: #687b94;
+        --line: #dde7f2;
+        --brand-blue: #174a8b;
+        --brand-orange: #f28c28;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--ink);
+        background: #edf4fa;
+        background-image: radial-gradient(#d8e4f3 0.8px, transparent 0.8px);
+        background-size: 18px 18px;
+        font-family: 'Segoe UI', sans-serif;
+      }
+      .app-shell {
+        position: relative;
+        min-height: 100dvh;
+        max-width: 440px;
+        margin: 0 auto;
+        overflow: hidden;
+        background: #ffffff;
+        box-shadow: 0 22px 80px rgba(22, 62, 107, 0.18);
+      }
+      @media (min-width: 480px) {
+        .app-shell {
+          min-height: min(900px, calc(100dvh - 48px));
+          margin: 24px auto;
+          border: 1px solid #d6e2f0;
+          border-radius: 28px;
+        }
+      }
+      .panel-card {
+        border: 1px solid var(--line);
+        background: #f7fafc;
+        border-radius: 1.25rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app-shell flex flex-col">
+      <header class="border-b border-[#e7edf6] bg-[#ffffff]/95 px-5 pb-4 pt-[max(14px,env(safe-area-inset-top))] backdrop-blur">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-[#687b94]">Gainmax demo</p>
+            <h1 class="mt-1 font-display text-[22px] font-extrabold tracking-[-0.06em]"><%= role %></h1>
+          </div>
+          <div class="flex gap-2">
+            <a href="/logout" class="rounded-xl bg-[#123d74] px-3 py-2 text-[11px] font-bold text-white">Logout</a>
+          </div>
+        </div>
+      </header>
+
+      <div class="flex-1 space-y-5 px-5 pb-8 pt-5">
+        <section class="rounded-[28px] bg-[#123d74] p-5 text-white">
+          <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-sky-200">Overview</p>
+          <h2 class="mt-2 text-[28px] font-black tracking-[-0.06em]">Welcome</h2>
+          <p class="mt-3 text-sm leading-6 text-sky-100">
+            <%= description %>
+          </p>
+          <a href="<%= primaryUrl %>" class="mt-5 inline-flex rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-[#123d74]"><%= primaryAction %></a>
+        </section>
+
+        <section class="panel-card p-4">
+          <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-[#687b94]">Quick status</p>
+          <div class="mt-4 space-y-3 text-sm text-slate-700">
+            <div class="flex items-center justify-between"><span>Active items</span><strong class="text-lg">12</strong></div>
+            <div class="flex items-center justify-between"><span>Pending</span><strong class="text-lg">05</strong></div>
+            <div class="flex items-center justify-between"><span>Alerts</span><strong class="text-lg">03</strong></div>
+          </div>
+        </section>
+
+        <section class="grid grid-cols-3 gap-3">
+          <div class="panel-card p-3 text-center">
+            <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-[#687b94]">Rate</p>
+            <p class="mt-2 text-2xl font-black tracking-[-0.05em]">84%</p>
+          </div>
+          <div class="panel-card p-3 text-center">
+            <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-[#687b94]">Due</p>
+            <p class="mt-2 text-2xl font-black tracking-[-0.05em]">19</p>
+          </div>
+          <div class="panel-card p-3 text-center">
+            <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-[#687b94]">Ops</p>
+            <p class="mt-2 text-2xl font-black tracking-[-0.05em]">07</p>
+          </div>
+        </section>
+
+        <section class="panel-card p-4">
+          <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-[#687b94]">Priority list</p>
+          <ul class="mt-4 space-y-3 text-sm">
+            <li class="flex items-center justify-between rounded-xl bg-white px-3 py-2"><span>Customer follow-up</span><span class="rounded-full bg-[#edf4ff] px-2 py-1 text-[10px] font-bold text-[#123d74]">High</span></li>
+            <li class="flex items-center justify-between rounded-xl bg-white px-3 py-2"><span>Site review</span><span class="rounded-full bg-[#eaf7ef] px-2 py-1 text-[10px] font-bold text-[#17714d]">Ready</span></li>
+            <li class="flex items-center justify-between rounded-xl bg-white px-3 py-2"><span>Admin approval</span><span class="rounded-full bg-[#fff1df] px-2 py-1 text-[10px] font-bold text-[#a94d08]">Queued</span></li>
+          </ul>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>

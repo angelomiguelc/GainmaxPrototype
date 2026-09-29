@@ -125,7 +125,8 @@ module.exports = (leads, mapsApiKey = '') => {
     }
   }
 
-  router.get('/', (req, res) => res.render('quote', { mapsApiKey }));
+  router.get('/', (req, res) => res.redirect('/customer'));
+  router.get('/customer', (req, res) => res.render('quote', { mapsApiKey }));
 
   router.post('/solar-snapshot', (req, res) => {
     const details = quoteDetailsFrom(req.body);
