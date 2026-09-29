@@ -29,9 +29,9 @@
   <% const propertyLabel = { Landed: 'Landed', Condo: 'Condo', 'C&I': 'Commercial & industrial' }[draft.details.property]; %>
   <% const areaLabel = draft.details.country === 'SG' ? 'Singapore' : 'Malaysia'; %>
   <main class="app-shell">
-    <header class="flex items-center justify-between border-b border-[#e1eaf5] px-5 py-4 sm:px-8">
+    <header class="flex flex-wrap items-center justify-between gap-3 border-b border-[#e1eaf5] px-5 py-4 sm:px-8">
       <div class="flex items-center gap-2.5" aria-label="Gainmax"><span class="grid h-9 w-9 place-items-center rounded-xl bg-[#174a8b] text-[#f28c28]"><i data-lucide="sun" class="h-5 w-5"></i></span><span class="font-display text-[17px] font-extrabold">gainmax<span class="text-[#174a8b]">.</span></span></div>
-      <span class="rounded-full bg-[#fff1e4] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[.6px] text-[#9d4b08]">Solar snapshot</span>
+      <a href="/sales/leads" class="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-[#dbe5f1] px-3 text-[10px] font-bold text-[#174a8b] sm:text-xs">Switch to Sales Portal <i data-lucide="arrow-up-right" class="h-3.5 w-3.5"></i></a>
     </header>
 
     <div class="px-5 pb-8 pt-6 sm:px-8 sm:pt-8">
@@ -82,6 +82,14 @@
         <p class="mt-2 text-[10px] leading-4 text-[#75869a]">Environmental equivalents use indicative grid-emissions and equivalency factors; actual impact varies by location and system performance.</p>
       </section>
     </div>
+
+    <footer class="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-[760px] border-t border-[#dbe5f1] bg-white/95 px-5 pb-[max(12px,env(safe-area-inset-bottom))] pt-3 backdrop-blur sm:px-8">
+      <form action="/submit-lead" method="POST" class="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3">
+        <input type="hidden" name="estimateToken" value="<%= token %>">
+        <div><p class="text-xs font-bold">Ready for Sales review?</p><p class="mt-0.5 text-[10px] text-[#687b94]">Submit this exact quote to the in-memory lead pipeline.</p></div>
+        <button type="submit" class="brand-cta inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#bd5200] px-4 text-sm font-bold text-white shadow-[0_5px_14px_#bd520030] sm:w-auto">Submit Lead &amp; Notify Sales <i data-lucide="send" class="h-4 w-4"></i></button>
+      </form>
+    </footer>
 
   </main>
   <script>lucide.createIcons();</script>

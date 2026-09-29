@@ -2,6 +2,7 @@ const express = require('express');
 const { randomUUID } = require('crypto');
 const multer = require('multer');
 const path = require('path');
+const { getMonitoringSnapshot } = require('../models/monitoring');
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -26,6 +27,7 @@ const DEFAULT_PANEL_COUNT = 30;
 const PANEL_AREA_SQUARE_METERS = 2.6;
 const USABLE_ROOF_RATIO = 0.75;
 const MAX_PANEL_COUNT = 10000;
+const LEAD_NURTURE_NOTE = 'Lead declined for installation — enrolled into automated marketing sequence (monthly solar educational brochures, tariff hike updates, and promotional flyers).';
 
 function roofAreaSquareMeters(points) {
   const earthRadiusMeters = 6378137;
@@ -284,7 +286,8 @@ module.exports = (leads, mapsApiKey = '') => {
     res.render('client-dashboard', {
       project,
       documentGroups: project ? projectDocuments(project) : [],
-      activeTab: req.query.tab === 'documents' ? 'documents' : 'project',
+      monitoring: project ? getMonitoringSnapshot(project) : null,
+      activeTab: ['project', 'documents', 'monitoring', 'referrals', 'feedback'].includes(req.query.tab) ? req.query.tab : 'project',
       receiptUploaded: req.query.receiptUploaded === '1',
       currentRole: req.cookies?.demoRole || null,
     });
@@ -316,6 +319,23 @@ module.exports = (leads, mapsApiKey = '') => {
       uploadedAt: new Date(),
     };
     res.redirect(`/client/project?projectId=${encodeURIComponent(project.id)}&tab=documents&receiptUploaded=1`);
+  });
+
+  router.get('/engineer/om', (req, res) => {
+    const projects = leads.filter((lead) => lead.status === 'Sales Closed')
+      .map((project) => ({ project, monitoring: getMonitoringSnapshot(project) }));
+    res.render('om-center', { projects });
+  });
+
+  router.post('/engineer/om/projects/:projectId/alarms/:alarmId/resolve', (req, res) => {
+    const project = leads.find((lead) => lead.id === req.params.projectId && lead.status === 'Sales Closed');
+    if (!project) return res.sendStatus(404);
+    project.monitoring ||= getMonitoringSnapshot(project);
+    const alarmIndex = project.monitoring.activeAlarms.findIndex((alarm) => alarm.id === req.params.alarmId);
+    if (alarmIndex < 0) return res.sendStatus(404);
+    const [alarm] = project.monitoring.activeAlarms.splice(alarmIndex, 1);
+    project.monitoring.resolvedAlarms.unshift({ ...alarm, severity: 'Normal', detail: `${alarm.detail} Resolved by Engineering.`, since: `Resolved ${new Date().toLocaleDateString('en-SG')}` });
+    res.redirect('/engineer/om');
   });
 
   router.post('/client/projects/:id/skom', (req, res) => {
@@ -388,7 +408,7 @@ module.exports = (leads, mapsApiKey = '') => {
     leads.unshift({
       id: randomUUID(),
       createdAt: new Date(),
-      status: 'Pending',
+      status: 'Pending Review',
       skomSigned: false,
       ...draft.details,
       estimate: draft.estimate,
@@ -403,16 +423,25 @@ module.exports = (leads, mapsApiKey = '') => {
 
   router.post('/sales/leads/:id/decline', (req, res) => {
     const lead = leads.find((entry) => entry.id === req.params.id);
-    if (!lead || lead.status !== 'Pending') return res.sendStatus(404);
-    lead.status = 'Rejected';
-    lead.rejectedAt = new Date();
+    if (!lead || !['Pending', 'Pending Review'].includes(lead.status)) return res.sendStatus(404);
+    const enrolledAt = new Date();
+    lead.status = 'Brochure Campaign (Nurtured)';
+    lead.declinedAt = enrolledAt;
+    lead.declineNote = LEAD_NURTURE_NOTE;
+    lead.marketingCampaign = {
+      status: 'Enrolled',
+      cadence: 'Monthly',
+      enrolledAt,
+      nextTouchAt: new Date(enrolledAt.getTime() + 30 * 24 * 60 * 60 * 1000),
+      sequence: ['Solar educational brochures', 'Tariff hike updates', 'Promotional flyers'],
+    };
     res.redirect('/sales/leads');
   });
 
   router.post('/sales/leads/:id/handoff', upload.single('proposal'), (req, res) => {
     const lead = leads.find((entry) => entry.id === req.params.id);
     const percentages = [req.body.confirmationPercent, req.body.installationPercent, req.body.handoverPercent].map(Number);
-    if (!lead || lead.status !== 'Pending') return res.sendStatus(404);
+    if (!lead || !['Pending', 'Pending Review'].includes(lead.status)) return res.sendStatus(404);
     if (!req.file) return res.status(400).send('Upload the customer proposal before handing over this project.');
     if (
       percentages.some((percentage) => !Number.isFinite(percentage) || percentage <= 0 || percentage > 100) ||

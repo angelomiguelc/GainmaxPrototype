@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#edf4fa">
+  <title>EPC Dashboard | Gainmax</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; color: #17324f; font-family: 'DM Sans', sans-serif; background: #edf4fa; background-image: radial-gradient(#d7e3f1 0.8px, transparent 0.8px); background-size: 18px 18px; }
+    .font-display { font-family: 'Manrope', sans-serif; }
+    .app-shell { max-width: 1180px; min-height: 100dvh; margin: 0 auto; background: #fff; box-shadow: 0 22px 80px #163e6b20; }
+    @media (min-width: 1220px) { .app-shell { min-height: calc(100dvh - 48px); margin: 24px auto; border: 1px solid #d6e2f0; border-radius: 24px; overflow: hidden; } }
+  </style>
+</head>
+<body>
+  <% const currency = new Intl.NumberFormat('en-SG', { style: 'currency', currency: 'SGD', maximumFractionDigits: 0 }); %>
+  <main class="app-shell">
+    <header class="sticky top-0 z-20 border-b border-[#e1eaf5] bg-white/95 px-4 pb-4 pt-[max(14px,env(safe-area-inset-top))] backdrop-blur sm:px-7">
+      <div class="flex items-center justify-between gap-3"><a href="/" class="flex items-center gap-2.5" aria-label="Gainmax portal switcher"><span class="grid h-9 w-9 place-items-center rounded-xl bg-[#174a8b] text-[#f28c28]"><i data-lucide="sun" class="h-5 w-5"></i></span><span class="font-display text-[17px] font-extrabold">gainmax<span class="text-[#174a8b]">.</span></span></a><div class="flex gap-2"><a href="/engineer/review" class="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-[#dbe5f1] px-3 text-[10px] font-bold text-[#174a8b] sm:text-xs"><i data-lucide="workflow" class="h-4 w-4"></i>Engineering</a><a href="/engineer/om" class="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-[#174a8b] px-3 text-[10px] font-bold text-white sm:text-xs"><i data-lucide="activity" class="h-4 w-4"></i>O&amp;M Center</a></div></div>
+      <div class="mt-5 flex flex-wrap items-end justify-between gap-3"><div><p class="text-[10px] font-bold uppercase tracking-[.16em] text-[#687b94]">Internal · Executive &amp; Operations</p><h1 class="mt-1 font-display text-[23px] font-extrabold sm:text-[27px]">Solar EPC Dashboard</h1></div><span class="inline-flex items-center gap-1.5 rounded-full bg-[#eaf5f3] px-3 py-1.5 text-[10px] font-bold text-[#147467]"><span class="h-1.5 w-1.5 rounded-full bg-[#147467]"></span>Demo telemetry</span></div>
+    </header>
+
+    <section class="space-y-7 px-4 pb-8 pt-5 sm:px-7 sm:pt-6">
+      <div class="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        <article class="rounded-xl border border-[#dbe5f1] bg-white p-4"><div class="flex items-center justify-between"><p class="text-[10px] font-bold uppercase tracking-wide text-[#687b94]">Deployed capacity</p><i data-lucide="solar-panel" class="h-4 w-4 text-[#174a8b]"></i></div><p class="mt-3 font-display text-2xl font-extrabold"><%= metrics.deployedCapacityKwp.toFixed(2) %><span class="ml-1 text-xs font-bold text-[#687b94]">kWp</span></p><p class="mt-1 text-[10px] text-[#8796a9]"><%= metrics.committedCapacityKwp.toFixed(2) %> kWp in active pipeline</p></article>
+        <article class="rounded-xl border border-[#dbe5f1] bg-white p-4"><div class="flex items-center justify-between"><p class="text-[10px] font-bold uppercase tracking-wide text-[#687b94]">Active WIP sites</p><i data-lucide="construction" class="h-4 w-4 text-[#a94d08]"></i></div><p class="mt-3 font-display text-2xl font-extrabold"><%= metrics.activeWipSites %></p><p class="mt-1 text-[10px] text-[#8796a9]">Across active EPC projects</p></article>
+        <article class="rounded-xl border border-[#dbe5f1] bg-white p-4"><div class="flex items-center justify-between"><p class="text-[10px] font-bold uppercase tracking-wide text-[#687b94]">Pending handover</p><i data-lucide="clipboard-check" class="h-4 w-4 text-[#174a8b]"></i></div><p class="mt-3 font-display text-2xl font-extrabold"><%= metrics.pendingHandover %></p><p class="mt-1 text-[10px] text-[#8796a9]">Projects at Stage 10</p></article>
+        <article class="rounded-xl border border-[#dbe5f1] bg-white p-4"><div class="flex items-center justify-between"><p class="text-[10px] font-bold uppercase tracking-wide text-[#687b94]">Revenue collected</p><i data-lucide="wallet" class="h-4 w-4 text-[#147467]"></i></div><p class="mt-3 font-display text-2xl font-extrabold"><%= currency.format(metrics.totalRevenueCollected) %></p><p class="mt-1 text-[10px] text-[#8796a9]">Receipts uploaded to date</p></article>
+      </div>
+
+      <div class="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(280px,.8fr)]">
+        <section class="rounded-xl border border-[#dbe5f1] bg-white p-4 sm:p-5" aria-labelledby="plantHealthTitle">
+          <div class="flex flex-wrap items-start justify-between gap-3"><div><p class="text-[10px] font-bold uppercase tracking-[.14em] text-[#687b94]">Fleet health</p><h2 id="plantHealthTitle" class="mt-1 font-display text-lg font-extrabold">Plant Health Summary</h2></div><a href="/engineer/om" class="text-xs font-bold text-[#174a8b]">Open O&amp;M Center <i data-lucide="arrow-up-right" class="inline h-3.5 w-3.5"></i></a></div>
+          <div class="mt-5 grid grid-cols-2 gap-3">
+            <div class="rounded-lg bg-[#f3f7fc] p-3.5"><p class="text-[10px] font-bold uppercase tracking-wide text-[#687b94]">Fleet average PR</p><p class="mt-2 font-display text-3xl font-extrabold"><%= metrics.fleetAveragePr.toFixed(1) %><span class="text-base">%</span></p><p class="mt-1 text-[10px] text-[#147467]">Target ≥ 80%</p></div>
+            <div class="rounded-lg bg-[#fff8ed] p-3.5"><p class="text-[10px] font-bold uppercase tracking-wide text-[#687b94]">Active fault alarms</p><p class="mt-2 font-display text-3xl font-extrabold"><%= metrics.activeFaultAlarms %></p><p class="mt-1 text-[10px] text-[#a94d08]"><%= metrics.activeAlarms %> active notices fleet-wide</p></div>
+          </div>
+          <div class="mt-4 overflow-x-auto"><table class="w-full min-w-[520px] text-left text-xs"><thead class="text-[9px] font-bold uppercase tracking-wide text-[#8796a9]"><tr><th class="pb-2">Plant</th><th class="pb-2">Capacity</th><th class="pb-2">PR</th><th class="pb-2">Actual / expected</th><th class="pb-2">Status</th></tr></thead><tbody class="divide-y divide-[#edf0ed]"><% monitoring.forEach(({ project, snapshot }) => { %><tr><td class="py-3 pr-2"><a class="font-bold text-[#174a8b]" href="/engineer/om#plant-<%= encodeURIComponent(project.id) %>"><%= project.id %></a><span class="mt-0.5 block text-[10px] text-[#687b94]"><%= project.customerName %></span></td><td class="py-3"><%= project.estimate.capacityKwp.toFixed(2) %> kWp</td><td class="py-3 font-bold"><%= snapshot.performanceRatio.toFixed(1) %>%</td><td class="py-3"><%= snapshot.actualYieldKwh.toLocaleString() %> / <%= snapshot.expectedYieldKwh.toLocaleString() %> kWh</td><td class="py-3"><span class="rounded-full bg-[#eaf5f3] px-2 py-1 text-[9px] font-bold text-[#147467]"><%= snapshot.systemStatus %></span></td></tr><% }); %><% if (!monitoring.length) { %><tr><td colspan="5" class="py-5 text-center text-[#8796a9]">No active plants have reported telemetry yet.</td></tr><% } %></tbody></table></div>
+        </section>
+
+        <section class="rounded-xl border border-[#dbe5f1] bg-white p-4 sm:p-5" aria-labelledby="operationsTitle">
+          <p class="text-[10px] font-bold uppercase tracking-[.14em] text-[#687b94]">Operations</p><h2 id="operationsTitle" class="mt-1 font-display text-lg font-extrabold">Active alarm feed</h2>
+          <div class="mt-4 space-y-2.5"><% monitoring.forEach(({ project, snapshot }) => snapshot.activeAlarms.forEach((alarm) => { %><div class="flex gap-3 rounded-lg border border-[#f0dfc7] bg-[#fffaf2] p-3"><span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#fff0d9] text-[#a94d08]"><i data-lucide="bell-ring" class="h-4 w-4"></i></span><div class="min-w-0"><div class="flex flex-wrap items-center gap-1.5"><p class="text-xs font-bold"><%= alarm.title %></p><span class="rounded-full bg-[#fff0d9] px-2 py-0.5 text-[9px] font-bold text-[#a94d08]"><%= alarm.severity %></span></div><p class="mt-1 text-[10px] leading-4 text-[#687b94]"><%= project.id %> · <%= alarm.detail %></p></div></div><% })); %><% if (!metrics.activeAlarms) { %><p class="rounded-lg bg-[#eaf5f3] p-3 text-xs text-[#147467]">No active alarms across the fleet.</p><% } %></div>
+          <a href="/engineer/om" class="mt-4 inline-flex min-h-10 items-center gap-2 rounded-lg border border-[#dbe5f1] px-3 text-xs font-bold text-[#174a8b]"><i data-lucide="activity" class="h-4 w-4"></i>Review inverter telemetry</a>
+        </section>
+      </div>
+
+      <section class="rounded-xl border border-[#dbe5f1] bg-white p-4 sm:p-5" aria-labelledby="projectsTitle"><div class="flex items-end justify-between gap-3"><div><p class="text-[10px] font-bold uppercase tracking-[.14em] text-[#687b94]">Portfolio</p><h2 id="projectsTitle" class="mt-1 font-display text-lg font-extrabold">EPC project portfolio</h2></div><a href="/engineer/review" class="text-xs font-bold text-[#174a8b]">Engineering queue <i data-lucide="arrow-up-right" class="inline h-3.5 w-3.5"></i></a></div><div class="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3"><% projects.forEach((project) => { %><a href="/engineer/review?projectId=<%= encodeURIComponent(project.id) %>" class="flex min-h-16 items-center justify-between gap-3 rounded-lg border border-[#e4ebf2] px-3 py-2.5 hover:bg-[#f7fafc]"><span class="min-w-0"><span class="block truncate text-xs font-bold"><%= project.customerName %></span><span class="mt-1 block text-[10px] text-[#687b94]"><%= project.id %> · <%= project.estimate.capacityKwp.toFixed(2) %> kWp</span></span><span class="shrink-0 rounded-full bg-[#edf4fc] px-2 py-1 text-[9px] font-bold text-[#174a8b]"><%= project.completedAt ? 'Complete' : `Stage ${project.currentStage || 1}` %></span></a><% }); %><% if (!projects.length) { %><p class="text-xs text-[#8796a9]">No EPC projects in the portfolio.</p><% } %></div></section>
+      <p class="text-[10px] text-[#8796a9]">Telemetry and generation values shown are prototype mock data, not live inverter readings.</p>
+    </section>
+  </main>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

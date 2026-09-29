@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const createRouter = require('./routes');
+const { getMonitoringSnapshot } = require('./models/monitoring');
 
 const normalizeMapsApiKey = (value) => String(value || '').trim().replace(/\\+$/, '');
 const roleTargets = {
@@ -129,7 +130,7 @@ app.get('/engineer', (req, res) => {
     currentRole: getDemoRole(req),
     description: 'System health, rooftop review queue, and installation planning.',
     primaryAction: 'Open engineer queue',
-    primaryUrl: '/engineer/review',
+    primaryUrl: '/engineer/om',
   });
 });
 
@@ -149,7 +150,41 @@ app.get('/admin', (req, res) => {
     currentRole: getDemoRole(req),
     description: 'Review platform activity, approvals, and operational performance.',
     primaryAction: 'Open admin console',
-    primaryUrl: '/admin',
+    primaryUrl: '/admin/dashboard',
+  });
+});
+
+app.get('/admin/dashboard', (req, res) => {
+  const projects = leads.filter((project) => project.status === 'Sales Closed');
+  const completedProjects = projects.filter((project) => project.completedAt);
+  const activeProjects = projects.filter((project) => !project.completedAt);
+  const monitoring = projects.map((project) => ({ project, snapshot: getMonitoringSnapshot(project) }));
+  const totalRevenueCollected = projects.reduce((total, project) => {
+    const receiptMilestones = Object.keys(project.receipts || {});
+    const receiptValue = { deposit: 0, preinstall: 1, handover: 2 };
+    return total + receiptMilestones.reduce((sum, key) => sum + (project.paymentMilestones?.[receiptValue[key]]?.amount || 0), 0);
+  }, 0);
+  const fleetAveragePr = monitoring.length
+    ? monitoring.reduce((total, entry) => total + entry.snapshot.performanceRatio, 0) / monitoring.length
+    : 0;
+  const criticalAlarms = monitoring.flatMap((entry) => entry.snapshot.activeAlarms)
+    .filter((alarm) => alarm.severity === 'Critical').length;
+
+  res.render('epc-dashboard', {
+    projects,
+    activeProjects,
+    completedProjects,
+    monitoring,
+    metrics: {
+      deployedCapacityKwp: completedProjects.reduce((total, project) => total + project.estimate.capacityKwp, 0),
+      committedCapacityKwp: activeProjects.reduce((total, project) => total + project.estimate.capacityKwp, 0),
+      activeWipSites: activeProjects.filter((project) => [8, 9].includes(Number(project.currentStage))).length,
+      pendingHandover: activeProjects.filter((project) => Number(project.currentStage) === 10).length,
+      totalRevenueCollected,
+      fleetAveragePr,
+      activeFaultAlarms: criticalAlarms,
+      activeAlarms: monitoring.reduce((total, entry) => total + entry.snapshot.activeAlarms.length, 0),
+    },
   });
 });
 

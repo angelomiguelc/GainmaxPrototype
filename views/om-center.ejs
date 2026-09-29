@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#edf4fa">
+  <title>O&amp;M Center | Gainmax</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; color: #17324f; font-family: 'DM Sans', sans-serif; background: #edf4fa; background-image: radial-gradient(#d7e3f1 0.8px, transparent 0.8px); background-size: 18px 18px; }
+    .font-display { font-family: 'Manrope', sans-serif; }
+    .app-shell { max-width: 1100px; min-height: 100dvh; margin: 0 auto; background: #fff; box-shadow: 0 22px 80px #163e6b20; }
+    @media (min-width: 1140px) { .app-shell { min-height: calc(100dvh - 48px); margin: 24px auto; border: 1px solid #d6e2f0; border-radius: 24px; overflow: hidden; } }
+  </style>
+</head>
+<body>
+  <% const inverterCount = projects.reduce((count, entry) => count + entry.monitoring.inverters.length, 0); %>
+  <% const activeAlarmCount = projects.reduce((count, entry) => count + entry.monitoring.activeAlarms.length, 0); %>
+  <% const criticalAlarmCount = projects.reduce((count, entry) => count + entry.monitoring.activeAlarms.filter((alarm) => alarm.severity === 'Critical').length, 0); %>
+  <main class="app-shell">
+    <header class="sticky top-0 z-20 border-b border-[#e1eaf5] bg-white/95 px-4 pb-4 pt-[max(14px,env(safe-area-inset-top))] backdrop-blur sm:px-7">
+      <div class="flex items-center justify-between gap-3"><a href="/" class="flex items-center gap-2.5" aria-label="Gainmax portal switcher"><span class="grid h-9 w-9 place-items-center rounded-xl bg-[#174a8b] text-[#f28c28]"><i data-lucide="sun" class="h-5 w-5"></i></span><span class="font-display text-[17px] font-extrabold">gainmax<span class="text-[#174a8b]">.</span></span></a><div class="flex gap-2"><a href="/admin/dashboard" class="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-[#dbe5f1] px-3 text-[10px] font-bold text-[#174a8b] sm:text-xs"><i data-lucide="layout-dashboard" class="h-4 w-4"></i>EPC dashboard</a><a href="/engineer/review" class="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-[#174a8b] px-3 text-[10px] font-bold text-white sm:text-xs"><i data-lucide="workflow" class="h-4 w-4"></i>Projects</a></div></div>
+      <div class="mt-5 flex flex-wrap items-end justify-between gap-3"><div><p class="text-[10px] font-bold uppercase tracking-[.16em] text-[#687b94]">Engineer · Operations &amp; Maintenance</p><h1 class="mt-1 font-display text-[23px] font-extrabold sm:text-[27px]">O&amp;M Center</h1><p class="mt-1 text-sm text-[#687b94]">Fleet telemetry, plant health, and service alerts.</p></div><span class="inline-flex items-center gap-1.5 rounded-full bg-[#eaf5f3] px-3 py-1.5 text-[10px] font-bold text-[#147467]"><span class="h-1.5 w-1.5 rounded-full bg-[#147467]"></span>Mock telemetry</span></div>
+    </header>
+
+    <section class="space-y-6 px-4 pb-8 pt-5 sm:px-7 sm:pt-6">
+      <div class="grid grid-cols-3 gap-2.5 sm:max-w-2xl">
+        <article class="rounded-xl border border-[#dbe5f1] p-3.5"><p class="text-[9px] font-bold uppercase tracking-wide text-[#687b94]">Plants monitored</p><p class="mt-2 font-display text-2xl font-extrabold"><%= projects.length %></p></article>
+        <article class="rounded-xl border border-[#dbe5f1] p-3.5"><p class="text-[9px] font-bold uppercase tracking-wide text-[#687b94]">Inverters online</p><p class="mt-2 font-display text-2xl font-extrabold text-[#147467]"><%= inverterCount %></p></article>
+        <article class="rounded-xl border border-[#dbe5f1] p-3.5"><p class="text-[9px] font-bold uppercase tracking-wide text-[#687b94]">Active alarms</p><p class="mt-2 font-display text-2xl font-extrabold <%= criticalAlarmCount ? 'text-[#b7352b]' : 'text-[#a94d08]' %>"><%= activeAlarmCount %></p><p class="text-[9px] text-[#687b94]"><%= criticalAlarmCount %> critical faults</p></article>
+      </div>
+
+      <% if (!projects.length) { %><div class="rounded-xl border border-dashed border-[#d4e1f0] bg-[#f7fafc] p-8 text-center"><i data-lucide="activity" class="mx-auto h-7 w-7 text-[#174a8b]"></i><h2 class="mt-3 font-display font-extrabold">No plants in monitoring</h2><p class="mt-1 text-sm text-[#687b94]">Telemetry appears when active EPC projects are available.</p></div><% } %>
+
+      <% projects.forEach(({ project, monitoring }) => { %>
+        <article id="plant-<%= project.id %>" class="scroll-mt-36 space-y-4 rounded-xl border border-[#dbe5f1] bg-white p-4 sm:p-5">
+          <header class="flex flex-wrap items-start justify-between gap-3"><div><p class="text-[10px] font-bold uppercase tracking-[.12em] text-[#687b94]">Plant · <%= project.id %></p><h2 class="mt-1 font-display text-lg font-extrabold"><%= project.customerName %></h2><p class="mt-1 text-xs text-[#687b94]"><%= project.propertyDisplay || project.property %> · <%= project.estimate.capacityKwp.toFixed(2) %> kWp</p></div><span class="inline-flex items-center gap-1.5 rounded-full bg-[#eaf5f3] px-3 py-1.5 text-[10px] font-bold text-[#147467]"><i data-lucide="radio" class="h-3.5 w-3.5"></i><%= monitoring.systemStatus %></span></header>
+
+          <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+            <section class="rounded-lg bg-[#f7fafc] p-3.5" aria-labelledby="inverters-<%= project.id %>"><div class="flex items-center justify-between gap-3"><h3 id="inverters-<%= project.id %>" class="text-xs font-extrabold">Inverter telemetry</h3><span class="text-[9px] text-[#8796a9]">Updated a few minutes ago</span></div><div class="mt-3 overflow-x-auto"><table class="w-full min-w-[480px] text-left text-[10px]"><thead class="text-[9px] font-bold uppercase text-[#8796a9]"><tr><th class="pb-2">Inverter</th><th class="pb-2">Power</th><th class="pb-2">Today</th><th class="pb-2">State</th></tr></thead><tbody class="divide-y divide-[#e4ebf2]"><% monitoring.inverters.forEach((inverter) => { %><tr><td class="py-2.5 pr-2"><span class="block font-bold"><%= inverter.id %></span><span class="mt-0.5 block text-[#687b94]"><%= inverter.model %></span></td><td class="py-2.5"><%= inverter.powerKw.toFixed(1) %> kW</td><td class="py-2.5"><%= inverter.dailyYieldKwh %> kWh</td><td class="py-2.5"><span class="rounded-full bg-[#eaf5f3] px-2 py-1 font-bold text-[#147467]"><%= inverter.status %></span></td></tr><% }); %></tbody></table></div></section>
+
+            <section class="rounded-lg bg-[#f7fafc] p-3.5" aria-labelledby="plantPr-<%= project.id %>"><div class="flex items-center justify-between gap-3"><div><h3 id="plantPr-<%= project.id %>" class="text-xs font-extrabold">Performance ratio</h3><p class="mt-1 text-[10px] text-[#687b94]">Mock energy yield snapshot</p></div><span class="rounded-full bg-[#eaf5f3] px-2.5 py-1 text-[9px] font-bold text-[#147467]">Target ≥ <%= monitoring.targetPerformanceRatio %>%</span></div><div class="mt-4 grid grid-cols-2 gap-2"><div class="rounded-md bg-white p-3"><p class="text-[9px] font-bold uppercase text-[#8796a9]">Current PR</p><p class="mt-1 font-display text-xl font-extrabold"><%= monitoring.performanceRatio.toFixed(1) %>%</p></div><div class="rounded-md bg-white p-3"><p class="text-[9px] font-bold uppercase text-[#8796a9]">Actual / expected</p><p class="mt-1 text-xs font-extrabold"><%= monitoring.actualYieldKwh.toLocaleString() %> / <%= monitoring.expectedYieldKwh.toLocaleString() %> kWh</p></div></div></section>
+          </div>
+
+          <section aria-labelledby="alarmTitle-<%= project.id %>"><div class="flex items-center justify-between gap-3"><h3 id="alarmTitle-<%= project.id %>" class="text-xs font-extrabold">Active system alarms</h3><span class="text-[9px] font-semibold text-[#687b94]"><%= monitoring.activeAlarms.length %> active</span></div><div class="mt-2 space-y-2"><% monitoring.activeAlarms.forEach((alarm) => { %><div class="flex flex-wrap items-center justify-between gap-3 rounded-lg border <%= alarm.severity === 'Critical' ? 'border-[#f2cbc7] bg-[#fff6f5]' : alarm.severity === 'Warning' ? 'border-[#f0dfc7] bg-[#fffaf2]' : 'border-[#dbe5f1] bg-[#f7fafc]' %> p-3"><div class="flex min-w-0 items-start gap-2.5"><i data-lucide="<%= alarm.severity === 'Critical' ? 'triangle-alert' : 'bell-ring' %>" class="mt-0.5 h-4 w-4 shrink-0 <%= alarm.severity === 'Critical' ? 'text-[#b7352b]' : alarm.severity === 'Warning' ? 'text-[#a94d08]' : 'text-[#147467]' %>"></i><div><div class="flex flex-wrap items-center gap-1.5"><p class="text-xs font-bold"><%= alarm.title %></p><span class="rounded-full px-2 py-0.5 text-[9px] font-bold <%= alarm.severity === 'Critical' ? 'bg-[#fae8e5] text-[#aa493b]' : alarm.severity === 'Warning' ? 'bg-[#fff0d9] text-[#a94d08]' : 'bg-[#eaf5f3] text-[#147467]' %>"><%= alarm.severity %></span></div><p class="mt-1 text-[10px] text-[#687b94]"><%= alarm.detail %> · <%= alarm.since %></p></div></div><form action="/engineer/om/projects/<%= encodeURIComponent(project.id) %>/alarms/<%= encodeURIComponent(alarm.id) %>/resolve" method="POST"><button type="submit" class="min-h-8 rounded-md border border-[#dbe5f1] bg-white px-2.5 text-[10px] font-bold text-[#536982]">Resolve</button></form></div><% }); %><% if (!monitoring.activeAlarms.length) { %><p class="rounded-lg bg-[#eaf5f3] p-3 text-xs text-[#147467]">No active faults for this plant.</p><% } %></div></section>
+
+          <details class="rounded-lg border border-[#e4ebf2] bg-white"><summary class="cursor-pointer list-none px-3.5 py-3 text-xs font-extrabold">Resolved alarm history <span class="ml-1 text-[10px] font-normal text-[#687b94]">(<%= monitoring.resolvedAlarms.length %>)</span><i data-lucide="chevron-down" class="float-right h-4 w-4 text-[#687b94]"></i></summary><div class="space-y-2 border-t border-[#edf0ed] p-3.5"><% monitoring.resolvedAlarms.forEach((alarm) => { %><div class="flex items-start gap-2"><i data-lucide="circle-check" class="mt-0.5 h-4 w-4 shrink-0 text-[#147467]"></i><div><p class="text-xs font-bold"><%= alarm.title %></p><p class="mt-1 text-[10px] text-[#687b94]"><%= alarm.detail %> · <%= alarm.since %></p></div></div><% }); %><% if (!monitoring.resolvedAlarms.length) { %><p class="text-[10px] text-[#8796a9]">No resolved alarms recorded.</p><% } %></div></details>
+        </article>
+      <% }); %>
+      <p class="text-[10px] text-[#8796a9]">Prototype telemetry is simulated. Connect inverter gateway APIs before using readings for operational decisions.</p>
+    </section>
+  </main>
+  <script>lucide.createIcons();</script>
+</body>
+</html>
