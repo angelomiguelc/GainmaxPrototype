@@ -89,9 +89,8 @@
         <p id="receiptMessage" class="mt-2 min-h-4 text-xs text-[#687b94]" aria-live="polite">Attach a receipt to the matching invoice. Files stay on this device in this demo.</p>
       </section>
 
-      <nav class="mt-7 grid grid-cols-4 gap-1 rounded-xl bg-[#f1f5f9] p-1" aria-label="Client portal sections" role="tablist">
+      <nav class="mt-7 grid grid-cols-3 gap-1 rounded-xl bg-[#f1f5f9] p-1" aria-label="Client portal sections" role="tablist">
         <button type="button" class="portal-tab rounded-lg bg-white px-1.5 py-2.5 text-[10px] font-bold text-[#174a8b] shadow-sm sm:text-xs" role="tab" aria-selected="true" data-tab="project"><i data-lucide="layers-3" class="mx-auto mb-1 h-4 w-4"></i>Project</button>
-        <button type="button" class="portal-tab rounded-lg px-1.5 py-2.5 text-[10px] font-bold text-[#687b94] sm:text-xs" role="tab" aria-selected="false" data-tab="assistant"><i data-lucide="messages-square" class="mx-auto mb-1 h-4 w-4"></i>AI Agent</button>
         <button type="button" class="portal-tab rounded-lg px-1.5 py-2.5 text-[10px] font-bold text-[#687b94] sm:text-xs" role="tab" aria-selected="false" data-tab="referrals"><i data-lucide="users-round" class="mx-auto mb-1 h-4 w-4"></i>Referrals</button>
         <button type="button" class="portal-tab rounded-lg px-1.5 py-2.5 text-[10px] font-bold text-[#687b94] sm:text-xs" role="tab" aria-selected="false" data-tab="feedback"><i data-lucide="message-square-heart" class="mx-auto mb-1 h-4 w-4"></i>Feedback</button>
       </nav>
@@ -124,15 +123,6 @@
         </div>
       </section>
 
-      <section id="assistantPanel" class="tab-panel mt-7" role="tabpanel" hidden>
-        <div class="mb-4"><p class="text-[10px] font-bold uppercase tracking-[.14em] text-[#687b94]">Project support</p><h2 class="mt-1 font-display text-lg font-extrabold">AI Agent</h2><p class="mt-1 text-sm text-[#687b94]">Ask about your project stages, invoices, or next steps.</p></div>
-        <div class="flex min-h-[310px] flex-col rounded-xl border border-[#dbe5f1] bg-[#f7fafc] p-3 sm:p-4">
-          <div id="chatMessages" class="flex-1 space-y-3" aria-live="polite"><div class="max-w-[88%] rounded-xl rounded-tl-sm bg-white p-3 text-sm leading-5 text-[#425975] shadow-sm">Hi, I can help explain the project timeline, payment milestones, and what happens next.</div></div>
-          <form id="chatForm" class="mt-4 flex gap-2"><label class="sr-only" for="chatInput">Message the project helper</label><input id="chatInput" class="h-11 min-w-0 flex-1 rounded-lg border border-[#dbe5f1] bg-white px-3 text-sm outline-none focus:border-[#174a8b]" placeholder="Ask a project question" maxlength="300" required><button class="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-[#174a8b] text-white" type="submit" aria-label="Send message"><i data-lucide="send" class="h-4 w-4"></i></button></form>
-          <p class="mt-2 text-[10px] text-[#8796a9]">Demo helper. For project-specific commitments, contact your Gainmax coordinator.</p>
-        </div>
-      </section>
-
       <section id="referralsPanel" class="tab-panel mt-7" role="tabpanel" hidden>
         <div class="mb-4"><p class="text-[10px] font-bold uppercase tracking-[.14em] text-[#687b94]">Share the sun</p><h2 class="mt-1 font-display text-lg font-extrabold">Referral program</h2></div>
         <div class="rounded-xl bg-[#147467] p-5 text-white sm:p-6"><span class="grid h-10 w-10 place-items-center rounded-xl bg-white/15"><i data-lucide="users-round" class="h-5 w-5"></i></span><h3 class="mt-4 font-display text-xl font-extrabold">Know someone going solar?</h3><p class="mt-2 max-w-md text-sm leading-5 text-white/85">Share your project referral link with a friend or neighbour who is exploring solar.</p><div class="mt-5 flex gap-2"><input id="referralLink" readonly class="h-11 min-w-0 flex-1 rounded-lg border border-white/25 bg-white/10 px-3 text-xs text-white outline-none"><button id="copyReferral" type="button" class="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-lg bg-white px-3 text-xs font-bold text-[#147467]"><i data-lucide="copy" class="h-4 w-4"></i><span>Copy link</span></button></div><p id="referralMessage" class="mt-2 min-h-4 text-xs text-white/80" aria-live="polite"></p></div>
@@ -149,15 +139,6 @@
       </section>
     </div>
 
-    <footer class="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[760px] border-t border-[#dbe5f1] bg-white/95 px-2 pb-[max(8px,env(safe-area-inset-bottom))] pt-2 backdrop-blur sm:static sm:border-t sm:bg-transparent sm:pb-5 sm:pt-0">
-      <p class="mb-1 text-center text-[9px] font-semibold uppercase tracking-[.12em] text-[#8796a9] sm:hidden">Project portal</p>
-      <div class="mx-auto grid max-w-[680px] grid-cols-4">
-        <button type="button" class="bottom-tab flex min-h-12 flex-col items-center justify-center gap-0.5 text-[10px] font-bold text-[#174a8b]" data-tab="project" aria-label="Project progress"><i data-lucide="layers-3" class="h-4 w-4"></i>Project</button>
-        <button type="button" class="bottom-tab flex min-h-12 flex-col items-center justify-center gap-0.5 text-[10px] font-semibold text-[#687b94]" data-tab="assistant" aria-label="AI Agent chat helper"><i data-lucide="messages-square" class="h-4 w-4"></i>AI Agent</button>
-        <button type="button" class="bottom-tab flex min-h-12 flex-col items-center justify-center gap-0.5 text-[10px] font-semibold text-[#687b94]" data-tab="referrals" aria-label="Referral program"><i data-lucide="users-round" class="h-4 w-4"></i>Referrals</button>
-        <button type="button" class="bottom-tab flex min-h-12 flex-col items-center justify-center gap-0.5 text-[10px] font-semibold text-[#687b94]" data-tab="feedback" aria-label="Feedback form"><i data-lucide="message-square-heart" class="h-4 w-4"></i>Feedback</button>
-      </div>
-    </footer>
   </main>
 
   <script>
@@ -313,11 +294,11 @@
     });
 
     function activateTab(tabName) {
-      document.querySelectorAll('.portal-tab, .bottom-tab').forEach((tab) => {
+      document.querySelectorAll('.portal-tab').forEach((tab) => {
         const active = tab.dataset.tab === tabName;
         tab.setAttribute('aria-selected', String(active));
-        tab.classList.toggle('bg-white', active && tab.classList.contains('portal-tab'));
-        tab.classList.toggle('shadow-sm', active && tab.classList.contains('portal-tab'));
+        tab.classList.toggle('bg-white', active);
+        tab.classList.toggle('shadow-sm', active);
         tab.classList.toggle('text-[#174a8b]', active);
         tab.classList.toggle('text-[#687b94]', !active);
         tab.classList.toggle('font-bold', active);
@@ -328,32 +309,7 @@
       });
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-    document.querySelectorAll('.portal-tab, .bottom-tab').forEach((tab) => tab.addEventListener('click', () => activateTab(tab.dataset.tab)));
-
-    document.getElementById('chatForm').addEventListener('submit', (event) => {
-      event.preventDefault();
-      const input = document.getElementById('chatInput');
-      const message = input.value.trim();
-      if (!message) return;
-      const userBubble = document.createElement('p');
-      userBubble.className = 'ml-auto max-w-[88%] rounded-xl rounded-tr-sm bg-[#174a8b] p-3 text-sm leading-5 text-white';
-      userBubble.textContent = message;
-      const messages = document.getElementById('chatMessages');
-      messages.append(userBubble);
-      const reply = document.createElement('p');
-      reply.className = 'max-w-[88%] rounded-xl rounded-tl-sm bg-white p-3 text-sm leading-5 text-[#425975] shadow-sm';
-      const query = message.toLowerCase();
-      reply.textContent = query.includes('invoice') || query.includes('payment')
-        ? 'Your payment plan is split into 20% at confirmation, 30% before installation, and 50% at handover. You can attach a receipt beside each milestone.'
-        : query.includes('skom')
-          ? 'SKOM is the project kick-off meeting. Review the details, then sign the agreement in Stage 6 to proceed.'
-          : query.includes('stage') || query.includes('when') || query.includes('next')
-            ? `Your project is at Stage ${currentStage + 1}: ${stages[currentStage].title}. Completed steps and the next stage are shown in Project progress.`
-            : 'I can help with the project stages, SKOM, and payment milestones. For dates or contract-specific questions, contact your Gainmax coordinator.';
-      messages.append(reply);
-      input.value = '';
-      messages.scrollTop = messages.scrollHeight;
-    });
+    document.querySelectorAll('.portal-tab').forEach((tab) => tab.addEventListener('click', () => activateTab(tab.dataset.tab)));
 
     document.getElementById('referralLink').value = `${window.location.origin}/client/project?ref=GMX-24018`;
     document.getElementById('copyReferral').addEventListener('click', async () => {
