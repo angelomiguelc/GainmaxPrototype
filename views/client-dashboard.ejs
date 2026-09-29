@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#edf4fa">
+  <title>Project tracker | Gainmax</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { color-scheme: light; --ink: #17324f; --muted: #687b94; --line: #dfe8f2; --blue: #174a8b; --orange: #bd5200; --green: #147467; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; color: var(--ink); font-family: 'DM Sans', sans-serif; background-color: #edf4fa; background-image: radial-gradient(#d7e3f1 0.8px, transparent 0.8px); background-size: 18px 18px; }
+    button, input, select, textarea { font: inherit; }
+    .font-display { font-family: 'Manrope', sans-serif; }
+    .app-shell { min-height: 100dvh; max-width: 760px; margin: 0 auto; overflow: hidden; background: #fff; box-shadow: 0 22px 80px #163e6b20; }
+    @media (min-width: 800px) { .app-shell { min-height: min(1000px, calc(100dvh - 48px)); margin: 24px auto; border: 1px solid #d6e2f0; border-radius: 24px; } }
+    .tab-panel[hidden] { display: none; }
+    .signature-canvas { touch-action: none; }
+    .stage-button:disabled { cursor: default; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <main class="app-shell flex flex-col pb-24 sm:pb-0">
+    <header class="sticky top-0 z-20 border-b border-[#e1eaf5] bg-white/95 px-5 pb-3 pt-[max(14px,env(safe-area-inset-top))] backdrop-blur sm:px-8">
+      <div class="flex items-center justify-between">
+        <a href="/" class="flex items-center gap-2.5" aria-label="Gainmax portal switcher">
+          <span class="grid h-9 w-9 place-items-center rounded-xl bg-[#174a8b] text-[#f28c28]"><i data-lucide="sun" class="h-5 w-5"></i></span>
+          <span class="font-display text-[17px] font-extrabold">gainmax<span class="text-[#174a8b]">.</span></span>
+        </a>
+        <div class="flex items-center gap-2">
+          <span class="hidden rounded-full bg-[#eaf5f3] px-3 py-1.5 text-[10px] font-bold uppercase text-[#147467] sm:inline-flex">Client portal</span>
+          <a href="/logout" class="grid h-9 w-9 place-items-center rounded-lg border border-[#dbe5f1] text-[#536982]" aria-label="Log out" title="Log out"><i data-lucide="log-out" class="h-4 w-4"></i></a>
+        </div>
+      </div>
+    </header>
+
+    <div class="mx-auto w-full max-w-[680px] flex-1 px-4 pb-8 pt-5 sm:px-8 sm:pt-7">
+      <section aria-labelledby="projectTitle" class="overflow-hidden rounded-2xl bg-[#123d74] text-white">
+        <div class="p-5 sm:p-6">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="text-[10px] font-bold uppercase tracking-[.16em] text-sky-200">Onboarded project · GMX-24018</p>
+              <h1 id="projectTitle" class="mt-2 font-display text-[23px] font-extrabold leading-tight sm:text-[27px]">Your solar project</h1>
+              <p class="mt-1 text-sm text-sky-100">Residential rooftop · Singapore</p>
+            </div>
+            <span id="currentStageBadge" class="max-w-[145px] rounded-full bg-white/15 px-3 py-1.5 text-right text-[10px] font-bold leading-4 text-white">Stage 4 · Shipping update</span>
+          </div>
+          <div class="mt-6 flex items-end justify-between gap-4 border-t border-white/20 pt-4">
+            <div><p class="text-[10px] font-semibold uppercase tracking-[.12em] text-sky-200">Contract sum</p><p class="mt-1 font-display text-[27px] font-extrabold">S$24,800</p></div>
+            <div class="text-right"><p class="text-[10px] text-sky-200">Project progress</p><p id="progressLabel" class="mt-1 text-sm font-bold">3 of 10 stages complete</p></div>
+          </div>
+          <div class="mt-3 h-1.5 overflow-hidden rounded-full bg-white/20"><div id="projectProgress" class="h-full rounded-full bg-[#f28c28] transition-[width]" style="width:30%"></div></div>
+        </div>
+      </section>
+
+      <section aria-labelledby="invoicesTitle" class="mt-7">
+        <div class="mb-3 flex items-end justify-between gap-3">
+          <div><p class="text-[10px] font-bold uppercase tracking-[.14em] text-[#687b94]">Payment plan</p><h2 id="invoicesTitle" class="mt-1 font-display text-lg font-extrabold">Milestone invoices</h2></div>
+          <span class="text-[11px] font-semibold text-[#687b94]">S$24,800 total</span>
+        </div>
+        <div class="divide-y divide-[#e7edf5] rounded-xl border border-[#dbe5f1] bg-white px-3 sm:px-4">
+          <div class="flex min-h-[76px] items-center gap-3 py-3">
+            <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#eaf5f3] text-[#147467]"><i data-lucide="check" class="h-4 w-4"></i></span>
+            <div class="min-w-0 flex-1"><p class="text-sm font-bold">20% · Project confirmation</p><p class="text-xs text-[#687b94]">S$4,960 invoice</p></div>
+            <label class="flex min-h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border border-[#dbe5f1] px-2.5 text-[11px] font-bold text-[#174a8b] hover:bg-[#f3f7fc]">
+              <i data-lucide="paperclip" class="h-3.5 w-3.5"></i><span>Payment Receipt</span><input class="receipt-input sr-only" type="file" accept="image/*,.pdf" data-milestone="confirmation" aria-label="Upload payment receipt for project confirmation">
+            </label>
+          </div>
+          <div class="flex min-h-[76px] items-center gap-3 py-3">
+            <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#fff1e4] text-[#a94d08]"><i data-lucide="clock-3" class="h-4 w-4"></i></span>
+            <div class="min-w-0 flex-1"><p class="text-sm font-bold">30% · Before installation</p><p class="text-xs text-[#687b94]">S$7,440 invoice</p></div>
+            <label class="flex min-h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border border-[#dbe5f1] px-2.5 text-[11px] font-bold text-[#174a8b] hover:bg-[#f3f7fc]">
+              <i data-lucide="paperclip" class="h-3.5 w-3.5"></i><span>Payment Receipt</span><input class="receipt-input sr-only" type="file" accept="image/*,.pdf" data-milestone="installation" aria-label="Upload payment receipt for installation">
+            </label>
+          </div>
+          <div class="flex min-h-[76px] items-center gap-3 py-3">
+            <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#f1f5f9] text-[#687b94]"><i data-lucide="circle-dashed" class="h-4 w-4"></i></span>
+            <div class="min-w-0 flex-1"><p class="text-sm font-bold">50% · Project handover</p><p class="text-xs text-[#687b94]">S$12,400 invoice</p></div>
+            <label class="flex min-h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border border-[#dbe5f1] px-2.5 text-[11px] font-bold text-[#174a8b] hover:bg-[#f3f7fc]">
+              <i data-lucide="paperclip" class="h-3.5 w-3.5"></i><span>Payment Receipt</span><input class="receipt-input sr-only" type="file" accept="image/*,.pdf" data-milestone="handover" aria-label="Upload payment receipt for project handover">
+            </label>
+          </div>
+        </div>
+        <p id="receiptMessage" class="mt-2 min-h-4 text-xs text-[#687b94]" aria-live="polite">Attach a receipt to the matching invoice. Files stay on this device in this demo.</p>
+      </section>
+
+      <nav class="mt-7 grid grid-cols-4 gap-1 rounded-xl bg-[#f1f5f9] p-1" aria-label="Client portal sections" role="tablist">
+        <button type="button" class="portal-tab rounded-lg bg-white px-1.5 py-2.5 text-[10px] font-bold text-[#174a8b] shadow-sm sm:text-xs" role="tab" aria-selected="true" data-tab="project"><i data-lucide="layers-3" class="mx-auto mb-1 h-4 w-4"></i>Project</button>
+        <button type="button" class="portal-tab rounded-lg px-1.5 py-2.5 text-[10px] font-bold text-[#687b94] sm:text-xs" role="tab" aria-selected="false" data-tab="assistant"><i data-lucide="messages-square" class="mx-auto mb-1 h-4 w-4"></i>AI Agent</button>
+        <button type="button" class="portal-tab rounded-lg px-1.5 py-2.5 text-[10px] font-bold text-[#687b94] sm:text-xs" role="tab" aria-selected="false" data-tab="referrals"><i data-lucide="users-round" class="mx-auto mb-1 h-4 w-4"></i>Referrals</button>
+        <button type="button" class="portal-tab rounded-lg px-1.5 py-2.5 text-[10px] font-bold text-[#687b94] sm:text-xs" role="tab" aria-selected="false" data-tab="feedback"><i data-lucide="message-square-heart" class="mx-auto mb-1 h-4 w-4"></i>Feedback</button>
+      </nav>
+
+      <section id="projectPanel" class="tab-panel mt-7" role="tabpanel" aria-labelledby="projectTitle">
+        <div class="mb-4 flex items-end justify-between gap-3">
+          <div><p class="text-[10px] font-bold uppercase tracking-[.14em] text-[#687b94]">Installation journey</p><h2 class="mt-1 font-display text-lg font-extrabold">Project progress</h2></div>
+          <span class="text-xs font-semibold text-[#687b94]">10 stages</span>
+        </div>
+        <div class="grid gap-5 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+          <ol id="stageList" class="space-y-1" aria-label="Project stages"></ol>
+          <div class="self-start rounded-xl border border-[#dbe5f1] bg-[#f7fafc] p-4 sm:p-5">
+            <div class="flex items-start justify-between gap-3"><div><p id="stageNumber" class="text-[10px] font-bold uppercase tracking-[.14em] text-[#687b94]"></p><h3 id="stageTitle" class="mt-1 font-display text-lg font-extrabold leading-tight"></h3></div><span id="stageStatus" class="shrink-0 rounded-full bg-[#fff1e4] px-2.5 py-1 text-[10px] font-bold text-[#a94d08]"></span></div>
+            <p id="stageDescription" class="mt-3 text-sm leading-5 text-[#536982]"></p>
+            <div id="standardStageActions" class="mt-5"><button id="completeStage" type="button" class="inline-flex min-h-11 items-center gap-2 rounded-lg bg-[#174a8b] px-4 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50">Mark stage complete <i data-lucide="arrow-right" class="h-4 w-4"></i></button></div>
+            <div id="skomActions" class="mt-5 hidden">
+              <label for="skomSignature" class="mb-2 block text-xs font-bold text-[#425975]">SKOM agreement signature</label>
+              <canvas id="skomSignature" class="signature-canvas h-36 w-full rounded-lg border border-dashed border-[#a9bacb] bg-white" width="640" height="180" aria-label="Draw your signature to agree to proceed"></canvas>
+              <div class="mt-2 flex items-center justify-between gap-3"><button type="button" class="clear-signature text-xs font-bold text-[#536982] underline" data-canvas="skomSignature">Clear signature</button><button id="agreeToProceed" type="button" class="min-h-10 rounded-lg bg-[#147467] px-3.5 text-xs font-bold text-white disabled:cursor-not-allowed disabled:opacity-50" disabled>Agree to proceed</button></div>
+              <p id="skomMessage" class="mt-2 min-h-4 text-xs text-[#687b94]" aria-live="polite">Draw your signature above to enable agreement.</p>
+            </div>
+            <div id="handoverActions" class="mt-5 hidden">
+              <label for="handoverSignature" class="mb-2 block text-xs font-bold text-[#425975]">Acceptance sign-off</label>
+              <canvas id="handoverSignature" class="signature-canvas h-36 w-full rounded-lg border border-dashed border-[#a9bacb] bg-white" width="640" height="180" aria-label="Draw your acceptance signature"></canvas>
+              <div class="mt-2 flex flex-wrap items-center justify-between gap-3"><button type="button" class="clear-signature text-xs font-bold text-[#536982] underline" data-canvas="handoverSignature">Clear signature</button><button id="acceptHandover" type="button" class="min-h-10 rounded-lg bg-[#147467] px-3.5 text-xs font-bold text-white disabled:cursor-not-allowed disabled:opacity-50" disabled>Sign acceptance</button></div>
+              <p id="handoverMessage" class="mt-2 min-h-4 text-xs text-[#687b94]" aria-live="polite">Sign above to confirm project acceptance.</p>
+              <button id="downloadWarranty" type="button" class="mt-4 inline-flex min-h-10 items-center gap-2 rounded-lg border border-[#dbe5f1] bg-white px-3.5 text-xs font-bold text-[#174a8b]"><i data-lucide="download" class="h-4 w-4"></i>Download warranty summary</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="assistantPanel" class="tab-panel mt-7" role="tabpanel" hidden>
+        <div class="mb-4"><p class="text-[10px] font-bold uppercase tracking-[.14em] text-[#687b94]">Project support</p><h2 class="mt-1 font-display text-lg font-extrabold">AI Agent</h2><p class="mt-1 text-sm text-[#687b94]">Ask about your project stages, invoices, or next steps.</p></div>
+        <div class="flex min-h-[310px] flex-col rounded-xl border border-[#dbe5f1] bg-[#f7fafc] p-3 sm:p-4">
+          <div id="chatMessages" class="flex-1 space-y-3" aria-live="polite"><div class="max-w-[88%] rounded-xl rounded-tl-sm bg-white p-3 text-sm leading-5 text-[#425975] shadow-sm">Hi, I can help explain the project timeline, payment milestones, and what happens next.</div></div>
+          <form id="chatForm" class="mt-4 flex gap-2"><label class="sr-only" for="chatInput">Message the project helper</label><input id="chatInput" class="h-11 min-w-0 flex-1 rounded-lg border border-[#dbe5f1] bg-white px-3 text-sm outline-none focus:border-[#174a8b]" placeholder="Ask a project question" maxlength="300" required><button class="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-[#174a8b] text-white" type="submit" aria-label="Send message"><i data-lucide="send" class="h-4 w-4"></i></button></form>
+          <p class="mt-2 text-[10px] text-[#8796a9]">Demo helper. For project-specific commitments, contact your Gainmax coordinator.</p>
+        </div>
+      </section>
+
+      <section id="referralsPanel" class="tab-panel mt-7" role="tabpanel" hidden>
+        <div class="mb-4"><p class="text-[10px] font-bold uppercase tracking-[.14em] text-[#687b94]">Share the sun</p><h2 class="mt-1 font-display text-lg font-extrabold">Referral program</h2></div>
+        <div class="rounded-xl bg-[#147467] p-5 text-white sm:p-6"><span class="grid h-10 w-10 place-items-center rounded-xl bg-white/15"><i data-lucide="users-round" class="h-5 w-5"></i></span><h3 class="mt-4 font-display text-xl font-extrabold">Know someone going solar?</h3><p class="mt-2 max-w-md text-sm leading-5 text-white/85">Share your project referral link with a friend or neighbour who is exploring solar.</p><div class="mt-5 flex gap-2"><input id="referralLink" readonly class="h-11 min-w-0 flex-1 rounded-lg border border-white/25 bg-white/10 px-3 text-xs text-white outline-none"><button id="copyReferral" type="button" class="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-lg bg-white px-3 text-xs font-bold text-[#147467]"><i data-lucide="copy" class="h-4 w-4"></i><span>Copy link</span></button></div><p id="referralMessage" class="mt-2 min-h-4 text-xs text-white/80" aria-live="polite"></p></div>
+      </section>
+
+      <section id="feedbackPanel" class="tab-panel mt-7" role="tabpanel" hidden>
+        <div class="mb-4"><p class="text-[10px] font-bold uppercase tracking-[.14em] text-[#687b94]">Help us improve</p><h2 class="mt-1 font-display text-lg font-extrabold">Project feedback</h2><p class="mt-1 text-sm text-[#687b94]">Tell us how the onboarding and project updates are going.</p></div>
+        <form id="feedbackForm" class="space-y-4 rounded-xl border border-[#dbe5f1] bg-white p-4 sm:p-5">
+          <div><label for="feedbackTopic" class="mb-1.5 block text-xs font-bold text-[#425975]">Feedback topic</label><select id="feedbackTopic" class="h-11 w-full rounded-lg border border-[#dbe5f1] bg-white px-3 text-sm outline-none focus:border-[#174a8b]"><option>Project updates</option><option>Payment process</option><option>Installation experience</option><option>Other</option></select></div>
+          <div><label for="feedbackText" class="mb-1.5 block text-xs font-bold text-[#425975]">Your feedback</label><textarea id="feedbackText" rows="5" maxlength="1000" required class="w-full resize-y rounded-lg border border-[#dbe5f1] px-3 py-2.5 text-sm outline-none focus:border-[#174a8b]" placeholder="Share your thoughts"></textarea></div>
+          <button class="min-h-11 rounded-lg bg-[#174a8b] px-4 text-sm font-bold text-white" type="submit">Send feedback</button>
+          <p id="feedbackMessage" class="min-h-4 text-xs text-[#147467]" aria-live="polite"></p>
+        </form>
+      </section>
+    </div>
+
+    <footer class="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[760px] border-t border-[#dbe5f1] bg-white/95 px-2 pb-[max(8px,env(safe-area-inset-bottom))] pt-2 backdrop-blur sm:static sm:border-t sm:bg-transparent sm:pb-5 sm:pt-0">
+      <p class="mb-1 text-center text-[9px] font-semibold uppercase tracking-[.12em] text-[#8796a9] sm:hidden">Project portal</p>
+      <div class="mx-auto grid max-w-[680px] grid-cols-4">
+        <button type="button" class="bottom-tab flex min-h-12 flex-col items-center justify-center gap-0.5 text-[10px] font-bold text-[#174a8b]" data-tab="project" aria-label="Project progress"><i data-lucide="layers-3" class="h-4 w-4"></i>Project</button>
+        <button type="button" class="bottom-tab flex min-h-12 flex-col items-center justify-center gap-0.5 text-[10px] font-semibold text-[#687b94]" data-tab="assistant" aria-label="AI Agent chat helper"><i data-lucide="messages-square" class="h-4 w-4"></i>AI Agent</button>
+        <button type="button" class="bottom-tab flex min-h-12 flex-col items-center justify-center gap-0.5 text-[10px] font-semibold text-[#687b94]" data-tab="referrals" aria-label="Referral program"><i data-lucide="users-round" class="h-4 w-4"></i>Referrals</button>
+        <button type="button" class="bottom-tab flex min-h-12 flex-col items-center justify-center gap-0.5 text-[10px] font-semibold text-[#687b94]" data-tab="feedback" aria-label="Feedback form"><i data-lucide="message-square-heart" class="h-4 w-4"></i>Feedback</button>
+      </div>
+    </footer>
+  </main>
+
+  <script>
+    lucide.createIcons();
+
+    const stages = [
+      { title: 'Pre-con survey', detail: 'A site survey confirms roof access, electrical conditions, and installation requirements.' },
+      { title: 'Finalise drawing', detail: 'Review and approve the final system layout before equipment is ordered.' },
+      { title: 'Purchasing of stock (BOM)', detail: 'Your bill of materials is confirmed and equipment purchasing is underway.' },
+      { title: 'Shipping update', detail: 'Equipment shipment is being coordinated. Updates will appear here as the delivery progresses.' },
+      { title: 'Shipment arrival', detail: 'The project team will confirm equipment arrival and complete a stock check.' },
+      { title: 'SKOM', detail: 'Review the system kick-off meeting notes, scope, and installation arrangements before work proceeds.' },
+      { title: 'Timeline finalised', detail: 'Your coordinator will confirm the installation dates and expected work sequence.' },
+      { title: 'Start work (Toolbox meeting)', detail: 'The team completes a toolbox safety meeting before work begins on site.' },
+      { title: 'Work in progress', detail: 'Installation is underway. Your coordinator will share progress and any required updates.' },
+      { title: 'Handover', detail: 'Review the completed installation, sign the acceptance, and download your warranty summary.' },
+    ];
+    let currentStage = 3;
+    let selectedStage = 3;
+    const completedStages = new Set([0, 1, 2]);
+    const signatureDrawn = { skomSignature: false, handoverSignature: false };
+    const stageList = document.getElementById('stageList');
+    const progressLabel = document.getElementById('progressLabel');
+    const progressBar = document.getElementById('projectProgress');
+    const currentStageBadge = document.getElementById('currentStageBadge');
+
+    function renderStages() {
+      stageList.replaceChildren();
+      stages.forEach((stage, index) => {
+        const item = document.createElement('li');
+        const button = document.createElement('button');
+        const isComplete = completedStages.has(index);
+        const isCurrent = index === currentStage;
+        button.type = 'button';
+        button.disabled = index > currentStage;
+        button.className = `stage-button flex min-h-[48px] w-full items-center gap-3 rounded-lg px-2 text-left transition-colors ${index === selectedStage ? 'bg-[#edf4fc]' : 'hover:bg-[#f7fafc]'} ${index > currentStage ? 'text-[#a1adbb]' : 'text-[#425975]'}`;
+        button.setAttribute('aria-current', isCurrent ? 'step' : 'false');
+        const marker = document.createElement('span');
+        marker.className = `grid h-7 w-7 shrink-0 place-items-center rounded-full border text-[10px] font-extrabold ${isComplete ? 'border-[#147467] bg-[#147467] text-white' : isCurrent ? 'border-[#174a8b] bg-white text-[#174a8b]' : 'border-[#d5dee8] bg-white text-[#8796a9]'}`;
+        marker.textContent = isComplete ? '✓' : String(index + 1);
+        const title = document.createElement('span');
+        title.className = 'min-w-0 flex-1 text-xs font-bold leading-4';
+        title.textContent = stage.title;
+        const status = document.createElement('span');
+        status.className = `shrink-0 text-[9px] font-bold uppercase tracking-wide ${isComplete ? 'text-[#147467]' : isCurrent ? 'text-[#a94d08]' : 'text-[#a1adbb]'}`;
+        status.textContent = isComplete ? 'Done' : isCurrent ? 'Now' : 'Next';
+        button.append(marker, title, status);
+        button.addEventListener('click', () => { selectedStage = index; renderStageDetail(); renderStages(); });
+        item.append(button);
+        stageList.append(item);
+      });
+      const completeCount = completedStages.size;
+      progressLabel.textContent = `${completeCount} of 10 stages complete`;
+      progressBar.style.width = `${completeCount * 10}%`;
+      currentStageBadge.textContent = completedStages.size === stages.length ? 'Project complete' : `Stage ${currentStage + 1} · ${stages[currentStage].title}`;
+    }
+
+    function renderStageDetail() {
+      const stage = stages[selectedStage];
+      const isCurrent = selectedStage === currentStage;
+      const isComplete = completedStages.has(selectedStage);
+      document.getElementById('stageNumber').textContent = `Stage ${selectedStage + 1} of 10`;
+      document.getElementById('stageTitle').textContent = stage.title;
+      document.getElementById('stageDescription').textContent = stage.detail;
+      const status = document.getElementById('stageStatus');
+      status.textContent = isComplete ? 'Complete' : isCurrent ? 'In progress' : 'Upcoming';
+      status.className = `shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold ${isComplete ? 'bg-[#eaf5f3] text-[#147467]' : isCurrent ? 'bg-[#fff1e4] text-[#a94d08]' : 'bg-[#edf1f5] text-[#687b94]'}`;
+      document.getElementById('standardStageActions').classList.toggle('hidden', selectedStage === 5 || selectedStage === 9);
+      document.getElementById('skomActions').classList.toggle('hidden', selectedStage !== 5);
+      document.getElementById('handoverActions').classList.toggle('hidden', selectedStage !== 9);
+      const completeButton = document.getElementById('completeStage');
+      completeButton.disabled = !isCurrent || isComplete;
+      completeButton.innerHTML = isComplete
+        ? 'Stage complete <i data-lucide="check" class="h-4 w-4"></i>'
+        : isCurrent ? 'Mark stage complete <i data-lucide="arrow-right" class="h-4 w-4"></i>' : 'Complete earlier stages first';
+      document.getElementById('agreeToProceed').disabled = !isCurrent || !signatureDrawn.skomSignature || isComplete;
+      document.getElementById('acceptHandover').disabled = !isCurrent || !signatureDrawn.handoverSignature || isComplete;
+      lucide.createIcons();
+    }
+
+    function completeCurrentStage() {
+      if (selectedStage !== currentStage || completedStages.has(currentStage)) return;
+      completedStages.add(currentStage);
+      currentStage = Math.min(currentStage + 1, stages.length - 1);
+      selectedStage = currentStage;
+      renderStages();
+      renderStageDetail();
+    }
+
+    document.getElementById('completeStage').addEventListener('click', completeCurrentStage);
+    document.getElementById('agreeToProceed').addEventListener('click', () => {
+      if (!signatureDrawn.skomSignature || selectedStage !== currentStage) return;
+      document.getElementById('skomMessage').textContent = 'Agreement signed. SKOM is complete and the project can proceed.';
+      completeCurrentStage();
+    });
+    document.getElementById('acceptHandover').addEventListener('click', () => {
+      if (!signatureDrawn.handoverSignature || selectedStage !== currentStage) return;
+      document.getElementById('handoverMessage').textContent = 'Acceptance signed. Thank you for choosing Gainmax.';
+      completeCurrentStage();
+    });
+
+    function setupSignature(canvasId, actionId) {
+      const canvas = document.getElementById(canvasId);
+      const context = canvas.getContext('2d');
+      let drawing = false;
+      function point(event) {
+        const rect = canvas.getBoundingClientRect();
+        return { x: (event.clientX - rect.left) * canvas.width / rect.width, y: (event.clientY - rect.top) * canvas.height / rect.height };
+      }
+      canvas.addEventListener('pointerdown', (event) => {
+        drawing = true;
+        canvas.setPointerCapture(event.pointerId);
+        const position = point(event);
+        context.beginPath();
+        context.moveTo(position.x, position.y);
+      });
+      canvas.addEventListener('pointermove', (event) => {
+        if (!drawing) return;
+        const position = point(event);
+        context.lineWidth = 3;
+        context.lineCap = 'round';
+        context.lineJoin = 'round';
+        context.strokeStyle = '#17324f';
+        context.lineTo(position.x, position.y);
+        context.stroke();
+        signatureDrawn[canvasId] = true;
+        document.getElementById(actionId).disabled = selectedStage !== (canvasId === 'skomSignature' ? 5 : 9) || selectedStage !== currentStage;
+      });
+      canvas.addEventListener('pointerup', () => { drawing = false; });
+      canvas.addEventListener('pointercancel', () => { drawing = false; });
+    }
+
+    setupSignature('skomSignature', 'agreeToProceed');
+    setupSignature('handoverSignature', 'acceptHandover');
+    document.querySelectorAll('.clear-signature').forEach((button) => {
+      button.addEventListener('click', () => {
+        const canvasId = button.dataset.canvas;
+        const canvas = document.getElementById(canvasId);
+        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+        signatureDrawn[canvasId] = false;
+        const actionId = canvasId === 'skomSignature' ? 'agreeToProceed' : 'acceptHandover';
+        document.getElementById(actionId).disabled = true;
+        if (canvasId === 'skomSignature') document.getElementById('skomMessage').textContent = 'Draw your signature above to enable agreement.';
+        else document.getElementById('handoverMessage').textContent = 'Sign above to confirm project acceptance.';
+      });
+    });
+
+    document.querySelectorAll('.receipt-input').forEach((input) => {
+      input.addEventListener('change', () => {
+        const file = input.files?.[0];
+        if (file) document.getElementById('receiptMessage').textContent = `Selected for ${input.dataset.milestone}: ${file.name}. Upload is simulated in this demo.`;
+      });
+    });
+
+    function activateTab(tabName) {
+      document.querySelectorAll('.portal-tab, .bottom-tab').forEach((tab) => {
+        const active = tab.dataset.tab === tabName;
+        tab.setAttribute('aria-selected', String(active));
+        tab.classList.toggle('bg-white', active && tab.classList.contains('portal-tab'));
+        tab.classList.toggle('shadow-sm', active && tab.classList.contains('portal-tab'));
+        tab.classList.toggle('text-[#174a8b]', active);
+        tab.classList.toggle('text-[#687b94]', !active);
+        tab.classList.toggle('font-bold', active);
+        tab.classList.toggle('font-semibold', !active);
+      });
+      document.querySelectorAll('.tab-panel').forEach((panel) => {
+        panel.hidden = panel.id !== `${tabName}Panel`;
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    document.querySelectorAll('.portal-tab, .bottom-tab').forEach((tab) => tab.addEventListener('click', () => activateTab(tab.dataset.tab)));
+
+    document.getElementById('chatForm').addEventListener('submit', (event) => {
+      event.preventDefault();
+      const input = document.getElementById('chatInput');
+      const message = input.value.trim();
+      if (!message) return;
+      const userBubble = document.createElement('p');
+      userBubble.className = 'ml-auto max-w-[88%] rounded-xl rounded-tr-sm bg-[#174a8b] p-3 text-sm leading-5 text-white';
+      userBubble.textContent = message;
+      const messages = document.getElementById('chatMessages');
+      messages.append(userBubble);
+      const reply = document.createElement('p');
+      reply.className = 'max-w-[88%] rounded-xl rounded-tl-sm bg-white p-3 text-sm leading-5 text-[#425975] shadow-sm';
+      const query = message.toLowerCase();
+      reply.textContent = query.includes('invoice') || query.includes('payment')
+        ? 'Your payment plan is split into 20% at confirmation, 30% before installation, and 50% at handover. You can attach a receipt beside each milestone.'
+        : query.includes('skom')
+          ? 'SKOM is the project kick-off meeting. Review the details, then sign the agreement in Stage 6 to proceed.'
+          : query.includes('stage') || query.includes('when') || query.includes('next')
+            ? `Your project is at Stage ${currentStage + 1}: ${stages[currentStage].title}. Completed steps and the next stage are shown in Project progress.`
+            : 'I can help with the project stages, SKOM, and payment milestones. For dates or contract-specific questions, contact your Gainmax coordinator.';
+      messages.append(reply);
+      input.value = '';
+      messages.scrollTop = messages.scrollHeight;
+    });
+
+    document.getElementById('referralLink').value = `${window.location.origin}/client/project?ref=GMX-24018`;
+    document.getElementById('copyReferral').addEventListener('click', async () => {
+      const message = document.getElementById('referralMessage');
+      try {
+        await navigator.clipboard.writeText(document.getElementById('referralLink').value);
+        message.textContent = 'Referral link copied.';
+      } catch (error) {
+        document.getElementById('referralLink').select();
+        message.textContent = 'Select and copy your referral link.';
+      }
+    });
+
+    document.getElementById('feedbackForm').addEventListener('submit', (event) => {
+      event.preventDefault();
+      document.getElementById('feedbackMessage').textContent = 'Thanks for sharing your feedback. It is saved for this demo session.';
+      event.currentTarget.reset();
+    });
+
+    document.getElementById('downloadWarranty').addEventListener('click', () => {
+      const warranty = [
+        'GAINMAX SOLAR PROJECT - WARRANTY SUMMARY (DEMO)',
+        'Project: GMX-24018',
+        'System: Residential rooftop solar installation',
+        '',
+        'This sample summary is for demonstration only and is not a warranty certificate.',
+        'Refer to your executed contract and product manufacturer documents for actual warranty terms.',
+      ].join('\n');
+      const file = new Blob([warranty], { type: 'text/plain' });
+      const url = URL.createObjectURL(file);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'gainmax-warranty-summary-demo.txt';
+      link.click();
+      URL.revokeObjectURL(url);
+    });
+
+    renderStages();
+    renderStageDetail();
+  </script>
+</body>
+</html>

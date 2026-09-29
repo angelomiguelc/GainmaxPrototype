@@ -8,6 +8,7 @@ const roleTargets = {
   engineer: '/engineer',
   sales: '/sales',
   admin: '/admin',
+  client: '/client/project',
 };
 
 function getDemoRole(req) {
@@ -86,6 +87,10 @@ app.get('/admin', (req, res) => {
     primaryAction: 'Open admin console',
     primaryUrl: '/admin',
   });
+});
+
+app.get('/client/project', (req, res) => {
+  res.render('client-dashboard', { currentRole: getDemoRole(req) });
 });
 
 app.use('/', createRouter(leads, mapsApiKey));
